@@ -1,0 +1,29 @@
+Server:
+  Port: 8080
+  Environment: "dev"
+  WhiteListCORS:
+    - "*"
+Database:
+  LongTermStorageDSN: "postgresql://postgres:123@localhost:5432/skripsi-be?sslmode=disable"
+Swagger:
+  Title: "Local"
+  Hostname: "localhost"
+  Port: 8080
+  Version: "v1.0.0"
+  Description: "babik"
+  Schemes:
+    - "http"
+    - "https"
+Redis:
+  Hostname: "localhost"
+  Port: 6379
+  Username: "local-user"
+  Password: "123"
+  DB: 0
+Cloudinary:
+  APIKey:
+  APISecret:
+  CloudName:
+JWT:
+  DurationInDay: 7
+  Secret: "secret"
