@@ -11,7 +11,6 @@ import (
 	"skripsi-be/repository"
 	"skripsi-be/service"
 
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -20,8 +19,6 @@ import (
 // @name						Authorization
 // @description				Type "Bearer " before the token value
 func main() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-
 	config, err := config.Load()
 	if err != nil {
 		panic(err)
@@ -31,6 +28,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer func() {
+		log.Info().Msg("Closing all connections...")
+
+		err = connections.Close()
+		if err != nil {
+			panic(err)
+		}
+
+		log.Info().Msg("All connections closed, RIP 🙏")
+	}()
 
 	repository, err := repository.New(
 		config,
@@ -66,13 +73,4 @@ func main() {
 			panic(err)
 		}
 	}
-
-	log.Info().Msg("Closing all connections...")
-
-	err = connections.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	log.Info().Msg("All connections closed, RIP 🙏")
 }

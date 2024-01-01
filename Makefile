@@ -19,6 +19,6 @@ migration-create:
 	@$(SHELL) $(SCRIPT_DIRECTORY)/create_migration.sh "$(MIGRATION_DIRECTORY)" "$(migrationName)"
 
 .PHONY: run
-run: swaggo
-	@go build -o build/"$(service)" -ldflags="-X main.service="$(service)""
-	@./build/"$(service)"
+run:
+	@go build -o build/"$(service)"
+	@./build/"$(service)" -service=$(service)

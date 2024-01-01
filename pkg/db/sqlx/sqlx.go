@@ -2,11 +2,11 @@ package sqlx
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/rs/zerolog/log"
 )
 
 func InitSQLX(dsn string) (db *sqlx.DB, err error) {
@@ -15,14 +15,22 @@ func InitSQLX(dsn string) (db *sqlx.DB, err error) {
 	}
 
 	delayTime := 1
+	maxRetry := 5
+	currRetry := 0
 
 	for {
 		db, err = sqlx.Connect("postgres", dsn)
 		if err != nil && delayTime <= 20 {
-			fmt.Printf("error (%v): failed on creating connection on database, try to reconnect in %d second\n", err.Error(), delayTime)
+			log.Error().Msgf("failed on creating connection on database, try to reconnect in %d second, err: %v", delayTime, err.Error())
+
+			if currRetry == maxRetry {
+				log.Fatal().Msgf("failed to connect to database, retry: %d", currRetry)
+				return nil, err
+			}
 
 			time.Sleep(time.Second * time.Duration(delayTime))
 			delayTime++
+			currRetry++
 
 			continue
 		} else if err == nil {

@@ -86,7 +86,8 @@ playground/*
 !playground/.empty
 
 etc/*.env
-build/main
+build/*
+!build/.empty
 
 etc/*.yaml
 !etc/*.tmpl
