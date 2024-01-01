@@ -21,7 +21,7 @@ func InitSQLX(dsn string) (db *sqlx.DB, err error) {
 	for {
 		db, err = sqlx.Connect("postgres", dsn)
 		if err != nil && delayTime <= 20 {
-			log.Error().Msgf("failed on creating connection on database, try to reconnect in %d second, err: %v", delayTime, err.Error())
+			log.Err(err).Msgf("failed on creating connection on database, try to reconnect in %d second,", delayTime)
 
 			if currRetry == maxRetry {
 				log.Fatal().Msgf("failed to connect to database, retry: %d", currRetry)

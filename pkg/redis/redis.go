@@ -42,7 +42,7 @@ func New(config RedisConfig) (*redis.Client, error) {
 			return nil, err
 		}
 
-		log.Error().Msgf("failed on creating connection on redis, try to reconnect in %d second, err: %v", sleepDuration, err.Error())
+		log.Err(err).Msgf("failed on creating connection on redis, try to reconnect in %d second", sleepDuration)
 		time.Sleep(time.Duration(sleepDuration * int(time.Second)))
 		sleepDuration++
 		retry++
