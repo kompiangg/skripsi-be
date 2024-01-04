@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"skripsi-be/cmd/webservice/middleware"
+	"skripsi-be/cmd/orderservice/middleware"
 	"skripsi-be/service"
 
 	"github.com/labstack/echo/v4"

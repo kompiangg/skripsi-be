@@ -23,7 +23,7 @@ func main() {
 	migrationFlag := entity.MigrationFlag{}
 
 	migrationFlag.Operation = flag.String("operation", "", "operation to perform (new, up, down, or drop)")
-	migrationFlag.ConnectionType = flag.String("type", "", "connection type (longterm or shard)")
+	migrationFlag.ConnectionType = flag.String("type", "", "connection type (longterm, shard, and general)")
 	migrationFlag.TableName = flag.String("tableName", "", "table name")
 	flag.Parse()
 
@@ -56,6 +56,14 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to create longterm migration")
 	}
 
+	generalMigration, err := migrate.New(
+		"file://./migration/general",
+		cfg.GeneralDatabase.URIConnection,
+	)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create general migration")
+	}
+
 	if *migrationFlag.Operation == "up" {
 		if *migrationFlag.ConnectionType == "shard" {
 			for _, shard := range shardMigration {
@@ -72,6 +80,13 @@ func main() {
 				log.Info().Msg("no change in longterm migration")
 			} else if err != nil {
 				log.Fatal().Err(err).Msg("failed to run longterm migration")
+			}
+		} else if *migrationFlag.ConnectionType == "general" {
+			err = generalMigration.Up()
+			if errors.Is(err, migrate.ErrNoChange) {
+				log.Info().Msg("no change in general migration")
+			} else if err != nil {
+				log.Fatal().Err(err).Msg("failed to run general migration")
 			}
 		}
 	} else if *migrationFlag.Operation == "down" {
@@ -91,6 +106,13 @@ func main() {
 			} else if err != nil {
 				log.Fatal().Err(err).Msg("failed to run longterm migration")
 			}
+		} else if *migrationFlag.ConnectionType == "general" {
+			err = generalMigration.Down()
+			if errors.Is(err, migrate.ErrNoChange) {
+				log.Info().Msg("no change in general migration")
+			} else if err != nil {
+				log.Fatal().Err(err).Msg("failed to run general migration")
+			}
 		}
 	} else if *migrationFlag.Operation == "drop" {
 		if *migrationFlag.ConnectionType == "shard" {
@@ -104,6 +126,11 @@ func main() {
 			err = longtermMigration.Drop()
 			if err != nil {
 				log.Fatal().Err(err).Msg("failed to run longterm migration")
+			}
+		} else if *migrationFlag.ConnectionType == "general" {
+			err = generalMigration.Drop()
+			if err != nil {
+				log.Fatal().Err(err).Msg("failed to run general migration")
 			}
 		}
 	} else if *migrationFlag.Operation == "new" {
@@ -126,6 +153,16 @@ func main() {
 			err := cmd.Run()
 			if err != nil {
 				log.Fatal().Err(err).Msg("failed to create new longterm migration")
+			}
+		} else if *migrationFlag.ConnectionType == "general" {
+			cmd := exec.CommandContext(
+				context.Background(),
+				"sh", "-c",
+				fmt.Sprintf("migrate create -ext sql -dir ./migration/general %s", *migrationFlag.TableName))
+
+			err := cmd.Run()
+			if err != nil {
+				log.Fatal().Err(err).Msg("failed to create new general migration")
 			}
 		}
 	}

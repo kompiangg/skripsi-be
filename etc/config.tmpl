@@ -1,29 +1,29 @@
-Server:
-  Port: 8080
-  Environment: "dev"
-  WhiteListCORS:
-    - "*"
-Database:
-  LongTermStorageDSN: "postgresql://postgres:123@localhost:5432/skripsi-be?sslmode=disable"
-Swagger:
-  Title: "Local"
-  Hostname: "localhost"
-  Port: 8080
-  Version: "v1.0.0"
-  Description: "babik"
-  Schemes:
-    - "http"
-    - "https"
+Microservice:
+  OrderService:
+    Host: "0.0.0.0"
+    Port: 8080
+    WhiteListAllowOrigin:
+      - "*"
+
+GeneralDatabase:
+  URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-general?sslmode=disable"
+
+LongTermDatabase:
+  URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-longterm?sslmode=disable"
+
+ShardingDatabase:
+  Shards:
+    - RangeInDay: 1
+      URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-oneDay?sslmode=disable"
+    - RangeInDay: 7
+      URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-sevenDay?sslmode=disable"
+    - RangeInDay: 30
+      URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-thirtyDay?sslmode=disable"
+    - RangeInDay: 90
+      URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-ninetyDay?sslmode=disable"
+
 Redis:
-  Hostname: "localhost"
-  Port: 6379
+  Hostname: "localhost:6379"
   Username: "local-user"
   Password: "123"
   DB: 0
-Cloudinary:
-  APIKey:
-  APISecret:
-  CloudName:
-JWT:
-  DurationInDay: 7
-  Secret: "secret"

@@ -7,8 +7,8 @@ import (
 	"skripsi-be/pkg/http"
 	"skripsi-be/service"
 
-	"skripsi-be/cmd/webservice/handler"
-	inmiddleware "skripsi-be/cmd/webservice/middleware"
+	"skripsi-be/cmd/orderservice/handler"
+	inmiddleware "skripsi-be/cmd/orderservice/middleware"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

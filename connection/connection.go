@@ -11,6 +11,7 @@ import (
 )
 
 type Connection struct {
+	GeneralDatabase  *sqlx.DB
 	LongTermDatabase *sqlx.DB
 	ShardingDatabase []*sqlx.DB
 	Redis            *redis.Client
@@ -23,6 +24,11 @@ func New(config config.Config) (Connection, error) {
 		Password: config.Redis.Password,
 		DB:       config.Redis.DB,
 	})
+	if err != nil {
+		return Connection{}, err
+	}
+
+	generalDatabase, err := pkgSQLX.InitSQLX(config.GeneralDatabase.URIConnection)
 	if err != nil {
 		return Connection{}, err
 	}
@@ -46,11 +52,17 @@ func New(config config.Config) (Connection, error) {
 		Redis:            redis,
 		LongTermDatabase: longTermDatabase,
 		ShardingDatabase: shardingDatabase,
+		GeneralDatabase:  generalDatabase,
 	}, nil
 }
 
 func (c *Connection) Close() error {
 	err := c.Redis.Close()
+	if err != nil {
+		return err
+	}
+
+	err = c.GeneralDatabase.Close()
 	if err != nil {
 		return err
 	}

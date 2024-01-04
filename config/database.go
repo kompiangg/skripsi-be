@@ -12,3 +12,7 @@ type Shard struct {
 type LongTermDatabase struct {
 	URIConnection string `yaml:"URIConnection"`
 }
+
+type GeneralDatabase struct {
+	URIConnection string `yaml:"URIConnection"`
+}

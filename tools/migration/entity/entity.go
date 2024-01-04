@@ -11,7 +11,7 @@ type MigrationFlag struct {
 func (m MigrationFlag) Validate() error {
 	err := validation.ValidateStruct(&m,
 		validation.Field(&m.Operation, validation.Required, validation.In("new", "up", "down", "drop")),
-		validation.Field(&m.ConnectionType, validation.Required, validation.In("longterm", "shard")),
+		validation.Field(&m.ConnectionType, validation.Required, validation.In("longterm", "shard", "general")),
 	)
 	if err != nil {
 		return err

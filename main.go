@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"skripsi-be/cmd/webservice"
+	webservice "skripsi-be/cmd/orderservice"
 	"skripsi-be/config"
 	"skripsi-be/connection"
 	_ "skripsi-be/pkg/errors"
@@ -64,10 +64,10 @@ func main() {
 		panic("service name must be not empty")
 	}
 
-	if *serviceName == "webservice" {
+	if *serviceName == "orderservice" {
 		err = webservice.Init(
 			service,
-			config.Microservice.WebService,
+			config.Microservice.OrderService,
 		)
 		if err != nil {
 			panic(err)
