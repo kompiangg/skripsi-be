@@ -84,6 +84,7 @@ $RECYCLE.BIN/
 
 playground/*
 !playground/.empty
+!playground/baseAlgorithm.go
 
 etc/*.env
 build/*
