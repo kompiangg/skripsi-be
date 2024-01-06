@@ -19,7 +19,6 @@ func (r repository) FindAllOnShardDB(ctx context.Context, dbIndex int) ([]model.
 			unit,
 			price,
 			total_price,
-			discount,
 			created_at
 		FROM
 			orders

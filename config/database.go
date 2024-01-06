@@ -1,7 +1,8 @@
 package config
 
 type ShardingDatabase struct {
-	Shards []Shard `yaml:"Shards"`
+	IsUsingSharding bool    `yaml:"IsUsingSharding"`
+	Shards          []Shard `yaml:"Shards"`
 }
 
 type Shard struct {

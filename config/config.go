@@ -14,6 +14,7 @@ type Config struct {
 	Microservice     Microservice     `yaml:"Microservice"`
 	Redis            Redis            `yaml:"Redis"`
 	Scheduler        Scheduler        `yaml:"Scheduler"`
+	Date             Date             `yaml:"Date"`
 	UploadFolderPath string
 }
 

@@ -13,7 +13,7 @@ func (r repository) InsertDataToShardDB(ctx context.Context, tx *sqlx.Tx, orders
 		INSERT INTO orders (
 				id, payment_id, customer_id, item_id, store_id, 
 				quantity, unit, price, total_price, discount, created_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	stmt, err := tx.PrepareContext(ctx, tx.Rebind(q))
@@ -27,7 +27,7 @@ func (r repository) InsertDataToShardDB(ctx context.Context, tx *sqlx.Tx, orders
 		_, err = stmt.ExecContext(ctx,
 			order.ID, order.PaymentID, order.CustomerID, order.ItemID,
 			order.StoreID, order.Quantity, order.Unit, order.Price,
-			order.TotalPrice, order.Discount, order.CreatedAt)
+			order.TotalPrice, order.CreatedAt)
 		if err != nil {
 			tx.Rollback()
 			return errors.New(err)
