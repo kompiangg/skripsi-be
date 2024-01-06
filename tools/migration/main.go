@@ -32,7 +32,7 @@ func main() {
 		log.Fatal().Err(err).Msg("invalid migration flag")
 	}
 
-	cfg, err := config.Load()
+	cfg, err := config.Load("./etc/config.yaml")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to load config")
 	}

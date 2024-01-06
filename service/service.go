@@ -3,17 +3,27 @@ package service
 import (
 	"skripsi-be/config"
 	"skripsi-be/repository"
+	"skripsi-be/service/order"
 )
 
 type Service struct {
-}
-
-type Config struct {
+	Order order.Order
 }
 
 func New(
 	repository repository.Repository,
 	config config.Config,
 ) (Service, error) {
-	return Service{}, nil
+	order := order.New(
+		order.Config{
+			Shards: config.ShardingDatabase.Shards,
+		},
+		repository.Sharding,
+		repository.Order,
+		repository.BeginShardDBTx,
+	)
+
+	return Service{
+		Order: order,
+	}, nil
 }

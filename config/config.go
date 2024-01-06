@@ -13,11 +13,12 @@ type Config struct {
 	ShardingDatabase ShardingDatabase `yaml:"ShardingDatabase"`
 	Microservice     Microservice     `yaml:"Microservice"`
 	Redis            Redis            `yaml:"Redis"`
+	Scheduler        Scheduler        `yaml:"Scheduler"`
 	UploadFolderPath string
 }
 
-func Load() (config Config, err error) {
-	fileName, err := filepath.Abs("./etc/config.yaml")
+func Load(path string) (config Config, err error) {
+	fileName, err := filepath.Abs(path)
 	if err != nil {
 		return config, err
 	}

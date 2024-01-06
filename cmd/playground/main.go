@@ -1,24 +1,22 @@
 package main
 
 import (
-	"flag"
-
-	"skripsi-be/cmd/orderservice"
+	"context"
+	"os"
+	"skripsi-be/cmd/scheduler/task"
 	"skripsi-be/config"
 	"skripsi-be/connection"
-	_ "skripsi-be/pkg/errors"
-
 	"skripsi-be/repository"
 	"skripsi-be/service"
 
+	"github.com/go-errors/errors"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
-// @securityDefinitions.apikey	BearerAuth
-// @in							header
-// @name						Authorization
-// @description				Type "Bearer " before the token value
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	config, err := config.Load("./etc/config.yaml")
 	if err != nil {
 		panic(err)
@@ -57,20 +55,12 @@ func main() {
 		panic(err)
 	}
 
-	serviceName := flag.String("service", "", "service name")
-	flag.Parse()
+	task := task.New(service)
 
-	if *serviceName == "" {
-		panic("service name must be not empty")
-	}
-
-	if *serviceName == "orderservice" {
-		err = orderservice.Init(
-			service,
-			config.Microservice.OrderService,
-		)
-		if err != nil {
-			panic(err)
-		}
+	err = task.Sharding(context.Background())
+	if err != nil {
+		errx := err.(*errors.Error)
+		log.Error().Err(err).Msg(errx.ErrorStack())
+		return
 	}
 }
