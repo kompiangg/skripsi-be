@@ -92,3 +92,5 @@ build/*
 
 etc/*.yaml
 !etc/*.tmpl
+
+dataset/*.csv
