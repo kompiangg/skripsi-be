@@ -182,7 +182,7 @@ func loadOrder(path string, stores []model.Store, storeCashier map[string][]mode
 			return nil, errors.Wrap(err, constant.SkipErrorParameter)
 		}
 
-		start := time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC)
+		start := time.Date(2023, 6, 1, 0, 0, 0, 0, time.FixedZone("Asia/Makassar", 8*60*60))
 		end := config.Date.Now()
 		diff := end.Unix() - start.Unix()
 		randSeconds := r.Int63n(diff)
