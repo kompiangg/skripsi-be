@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS stores (
-  id UUID PRIMARY KEY,
+  id varchar(10) PRIMARY KEY,
   region VARCHAR(255),
   district VARCHAR(255),
   sub_district VARCHAR(255),

@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY,
-  payment_id UUID,
-  customer_id VARCHAR(36),
   cashier_id UUID,
-  item_id UUID,
-  store_id UUID,
+  item_id varchar(10),
+  store_id varchar(10),
+  payment_id varchar(10),
+  customer_id varchar(10),
   quantity INT,
   unit VARCHAR(255),
-  price BIGINT,
-  total_price BIGINT,
+  price DECIMAL(10,2),
+  total_price DECIMAL(10,2),
   created_at TIMESTAMPTZ NOT NULL
 );

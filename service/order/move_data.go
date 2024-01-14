@@ -11,6 +11,7 @@ func (s service) MoveDataThroughShard(ctx context.Context) error {
 	shardCount, err := s.shardRepo.GetShardCountScheduler(ctx)
 	if errors.Is(err, constant.ErrRedisNil) {
 		shardCount = 0
+		err = nil
 	} else if err != nil {
 		return errors.Wrap(err, constant.SkipErrorParameter)
 	}
@@ -44,17 +45,24 @@ func (s service) MoveDataThroughShard(ctx context.Context) error {
 				return errors.Wrap(err, constant.SkipErrorParameter)
 			}
 
-			err = s.orderRepo.InsertDataToShardDB(ctx, afterIndexTx, currentData)
+			err = s.orderRepo.InsertToShardDB(ctx, afterIndexTx, currentData)
 			if err != nil {
 				afterIndexTx.Rollback()
 				currentIndexTx.Rollback()
 				return errors.Wrap(err, constant.SkipErrorParameter)
 			}
 
-			afterIndexTx.Commit()
+			err = afterIndexTx.Commit()
+			if err != nil {
+				currentIndexTx.Rollback()
+				return errors.Wrap(err, constant.SkipErrorParameter)
+			}
 		}
 
-		currentIndexTx.Commit()
+		err = currentIndexTx.Commit()
+		if err != nil {
+			return errors.Wrap(err, constant.SkipErrorParameter)
+		}
 	}
 
 	if shardCount == s.config.Shards[len(s.config.Shards)-1].RangeInDay {

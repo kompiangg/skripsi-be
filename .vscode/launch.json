@@ -22,6 +22,18 @@
       "cwd": "${workspaceFolder}",
       "env": {},
       "args": []
+    },
+    {
+      "name": "Debug Seeder Playground",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "./tools/seeder/main.go",
+      "cwd": "${workspaceFolder}",
+      "env": {},
+      "args": [
+        "-type=else"
+      ]
     }
   ]
 }

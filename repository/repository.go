@@ -11,19 +11,22 @@ import (
 )
 
 type Repository struct {
-	Sharding shard.Repository
-	Order    order.Repository
-
-	longTermDB *sqlx.DB
-	shardDB    []*sqlx.DB
+	Sharding     shard.Repository
+	Order        order.Repository
+	LongTermDBTx func(ctx context.Context) (*sqlx.Tx, error)
+	ShardDBTx    func(ctx context.Context, dbIndex int) (*sqlx.Tx, error)
 }
 
-func (r Repository) BeginLongTermDBTx(ctx context.Context) (*sqlx.Tx, error) {
-	return r.longTermDB.BeginTxx(ctx, nil)
+func beginLongTermDBTx(longtermDB *sqlx.DB) func(ctx context.Context) (*sqlx.Tx, error) {
+	return func(ctx context.Context) (*sqlx.Tx, error) {
+		return longtermDB.BeginTxx(context.Background(), nil)
+	}
 }
 
-func (r Repository) BeginShardDBTx(ctx context.Context, dbIndex int) (*sqlx.Tx, error) {
-	return r.shardDB[dbIndex].BeginTxx(ctx, nil)
+func beginShardDBTx(shardingDatabase []*sqlx.DB) func(ctx context.Context, dbIndex int) (*sqlx.Tx, error) {
+	return func(ctx context.Context, dbIndex int) (*sqlx.Tx, error) {
+		return shardingDatabase[dbIndex].BeginTxx(ctx, nil)
+	}
 }
 
 func New(
@@ -47,9 +50,9 @@ func New(
 	)
 
 	return Repository{
-		Sharding:   sharding,
-		Order:      order,
-		longTermDB: longTermDatabase,
-		shardDB:    shardingDatabase,
+		Sharding:     sharding,
+		Order:        order,
+		LongTermDBTx: beginLongTermDBTx(longTermDatabase),
+		ShardDBTx:    beginShardDBTx(shardingDatabase),
 	}, nil
 }

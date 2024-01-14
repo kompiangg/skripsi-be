@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS items (
+  id varchar(10) PRIMARY KEY,
+  "name" VARCHAR(255) NOT NULL,
+  "desc" VARCHAR(255) NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  origin_country VARCHAR(255) NOT NULL,
+  supplier VARCHAR(255) NOT NULL,
+  unit VARCHAR(255) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+)

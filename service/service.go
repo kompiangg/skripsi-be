@@ -17,10 +17,12 @@ func New(
 	order := order.New(
 		order.Config{
 			Shards: config.ShardingDatabase.Shards,
+			Date:   config.Date,
 		},
 		repository.Sharding,
 		repository.Order,
-		repository.BeginShardDBTx,
+		repository.ShardDBTx,
+		repository.LongTermDBTx,
 	)
 
 	return Service{

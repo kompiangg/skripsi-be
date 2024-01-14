@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"os"
-	"skripsi-be/cmd/scheduler/task"
 	"skripsi-be/config"
 	"skripsi-be/connection"
 	"skripsi-be/repository"
 	"skripsi-be/service"
+	"skripsi-be/type/params"
+	"time"
 
-	"github.com/go-errors/errors"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/volatiletech/null/v9"
 )
 
 func main() {
@@ -55,12 +57,120 @@ func main() {
 		panic(err)
 	}
 
-	task := task.New(service)
+	// task := task.New(service)
 
-	err = task.Sharding(context.Background())
+	orders := make(params.ServiceInsertOrdersToShardParam, 0)
+
+	// 0
+	dateTime, err := time.Parse(time.RFC3339, "2023-12-31T12:00:00+08:00")
 	if err != nil {
-		errx := err.(*errors.Error)
-		log.Error().Err(err).Msg(errx.ErrorStack())
-		return
+		panic(err)
+	}
+	orders = append(orders, params.ServiceInsertOrderToShardParam{
+		ID:         uuid.New(),
+		ItemID:     uuid.New(),
+		StoreID:    uuid.New(),
+		CustomerID: uuid.New(),
+		Unit:       null.String{String: "kg", Valid: true},
+		CreatedAt:  dateTime,
+		Price:      10000,
+		TotalPrice: 10000,
+		PaymentID:  1,
+		Quantity:   1,
+	})
+
+	// 1
+	dateTime, _ = time.Parse(time.RFC3339, "2023-12-30T12:00:00+08:00")
+	orders = append(orders, params.ServiceInsertOrderToShardParam{
+		ID:         uuid.New(),
+		ItemID:     uuid.New(),
+		StoreID:    uuid.New(),
+		CustomerID: uuid.New(),
+		Unit:       null.String{String: "kg", Valid: true},
+		CreatedAt:  dateTime,
+		Price:      10000,
+		TotalPrice: 10000,
+		PaymentID:  1,
+		Quantity:   1,
+	})
+
+	// 1
+	dateTime, _ = time.Parse(time.RFC3339, "2023-12-24T12:00:00+08:00")
+	orders = append(orders, params.ServiceInsertOrderToShardParam{
+		ID:         uuid.New(),
+		ItemID:     uuid.New(),
+		StoreID:    uuid.New(),
+		CustomerID: uuid.New(),
+		Unit:       null.String{String: "kg", Valid: true},
+		CreatedAt:  dateTime,
+		Price:      10000,
+		TotalPrice: 10000,
+		PaymentID:  1,
+		Quantity:   1,
+	})
+
+	// 2
+	dateTime, _ = time.Parse(time.RFC3339, "2023-12-25T12:00:00+08:00")
+	orders = append(orders, params.ServiceInsertOrderToShardParam{
+		ID:         uuid.New(),
+		ItemID:     uuid.New(),
+		StoreID:    uuid.New(),
+		CustomerID: uuid.New(),
+		Unit:       null.String{String: "kg", Valid: true},
+		CreatedAt:  dateTime,
+		Price:      10000,
+		TotalPrice: 10000,
+		PaymentID:  1,
+		Quantity:   1,
+	})
+
+	// 2
+	dateTime, _ = time.Parse(time.RFC3339, "2023-12-01T12:00:00+08:00")
+	orders = append(orders, params.ServiceInsertOrderToShardParam{
+		ID:         uuid.New(),
+		ItemID:     uuid.New(),
+		StoreID:    uuid.New(),
+		CustomerID: uuid.New(),
+		Unit:       null.String{String: "kg", Valid: true},
+		CreatedAt:  dateTime,
+		Price:      10000,
+		TotalPrice: 10000,
+		PaymentID:  1,
+		Quantity:   1,
+	})
+
+	// 3
+	dateTime, _ = time.Parse(time.RFC3339, "2023-11-01T12:00:00+08:00")
+	orders = append(orders, params.ServiceInsertOrderToShardParam{
+		ID:         uuid.New(),
+		ItemID:     uuid.New(),
+		StoreID:    uuid.New(),
+		CustomerID: uuid.New(),
+		Unit:       null.String{String: "kg", Valid: true},
+		CreatedAt:  dateTime,
+		Price:      10000,
+		TotalPrice: 10000,
+		PaymentID:  1,
+		Quantity:   1,
+	})
+
+	// not inserted
+	dateTime, _ = time.Parse(time.RFC3339, "2023-01-01T12:00:00+08:00")
+	orders = append(orders, params.ServiceInsertOrderToShardParam{
+		ID:         uuid.New(),
+		ItemID:     uuid.New(),
+		StoreID:    uuid.New(),
+		CustomerID: uuid.New(),
+		Unit:       null.String{String: "kg", Valid: true},
+		CreatedAt:  dateTime,
+		Price:      10000,
+		TotalPrice: 10000,
+		PaymentID:  1,
+		Quantity:   1,
+	})
+
+	err = service.Order.InsertToShard(context.Background(), orders)
+	if err != nil {
+		panic(err)
 	}
 }

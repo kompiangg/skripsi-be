@@ -9,13 +9,14 @@ import (
 
 type Order struct {
 	ID         uuid.UUID     `db:"id"`
-	PaymentID  uuid.NullUUID `db:"payment_id"`
+	ItemID     null.String   `db:"item_id"`
+	StoreID    null.String   `db:"store_id"`
+	PaymentID  null.String   `db:"payment_id"`
 	CustomerID null.String   `db:"customer_id"`
-	ItemID     uuid.NullUUID `db:"item_id"`
-	StoreID    uuid.NullUUID `db:"store_id"`
+	CashierID  uuid.NullUUID `db:"cashier_id"`
 	Quantity   null.Int      `db:"quantity"`
 	Unit       null.String   `db:"unit"`
-	Price      null.Int64    `db:"price"`
-	TotalPrice null.Int64    `db:"total_price"`
+	Price      null.Float64  `db:"price"`
+	TotalPrice null.Float64  `db:"total_price"`
 	CreatedAt  time.Time     `db:"created_at"`
 }
