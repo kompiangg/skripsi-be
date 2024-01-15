@@ -1,8 +1,10 @@
 package config
 
 type Microservice struct {
-	OrderService HTTPServer `yaml:"OrderService"`
+	OrderService OrderService `yaml:"OrderService"`
 }
+
+type OrderService HTTPServer
 
 type HTTPServer struct {
 	Host                 string   `yaml:"Host"`

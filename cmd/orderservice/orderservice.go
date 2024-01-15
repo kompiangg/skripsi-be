@@ -17,7 +17,7 @@ import (
 
 func Init(
 	service service.Service,
-	config config.HTTPServer,
+	config config.OrderService,
 ) error {
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(
