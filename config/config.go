@@ -15,6 +15,7 @@ type Config struct {
 	Redis            Redis            `yaml:"Redis"`
 	Scheduler        Scheduler        `yaml:"Scheduler"`
 	Date             Date             `yaml:"Date"`
+	JWT              JWT              `yaml:"JWT"`
 	UploadFolderPath string
 }
 

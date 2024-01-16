@@ -18,6 +18,7 @@ import (
 func Init(
 	service service.Service,
 	config config.OrderService,
+	mw inmiddleware.Middleware,
 ) error {
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(
@@ -26,7 +27,6 @@ func Init(
 		},
 	))
 
-	mw := inmiddleware.New(inmiddleware.Config{})
 	handler.Init(e, service, mw)
 
 	log.Info().Msgf("Starting Web Service HTTP server on %s:%d", config.Host, config.Port)

@@ -3,7 +3,14 @@ package main
 import (
 	"flag"
 
+	"skripsi-be/cmd/authservice"
+	"skripsi-be/cmd/ingestionservice"
+	"skripsi-be/cmd/longtermloadservice"
+	"skripsi-be/cmd/middleware"
 	"skripsi-be/cmd/orderservice"
+	"skripsi-be/cmd/scheduler"
+	"skripsi-be/cmd/servingservice"
+	"skripsi-be/cmd/shardingloadservice"
 	"skripsi-be/config"
 	"skripsi-be/connection"
 	_ "skripsi-be/pkg/errors"
@@ -42,6 +49,7 @@ func main() {
 	repository, err := repository.New(
 		config,
 		connections.LongTermDatabase,
+		connections.GeneralDatabase,
 		connections.ShardingDatabase,
 		connections.Redis,
 	)
@@ -60,17 +68,84 @@ func main() {
 	serviceName := flag.String("service", "", "service name")
 	flag.Parse()
 
+	mw := middleware.New(
+		middleware.Config{
+			JWTConfig: config.JWT,
+		},
+	)
+
 	if *serviceName == "" {
 		panic("service name must be not empty")
 	}
 
-	if *serviceName == "orderservice" {
-		err = orderservice.Init(
+	if *serviceName == "authservice" {
+		err = authservice.Init(
 			service,
-			config.Microservice.OrderService,
+			config.Microservice.AuthService,
+			mw,
 		)
 		if err != nil {
 			panic(err)
 		}
+	} else if *serviceName == "ingestionservice" {
+		err = ingestionservice.Init(
+			service,
+			config.Microservice.IngestionService,
+			mw,
+		)
+		if err != nil {
+			panic(err)
+		}
+	} else if *serviceName == "longtermloadservice" {
+		err = longtermloadservice.Init(
+			service,
+			config.Microservice.LongTermLoadService,
+			mw,
+		)
+		if err != nil {
+			panic(err)
+		}
+	} else if *serviceName == "orderservice" {
+		err = orderservice.Init(
+			service,
+			config.Microservice.OrderService,
+			mw,
+		)
+		if err != nil {
+			panic(err)
+		}
+	} else if *serviceName == "scheduler" {
+		scheduler.Init(
+			service,
+			config.Scheduler,
+		)
+	} else if *serviceName == "servingservice" {
+		err = servingservice.Init(
+			service,
+			config.Microservice.ServingService,
+			mw,
+		)
+		if err != nil {
+			panic(err)
+		}
+	} else if *serviceName == "shardingloadservice" {
+		err = shardingloadservice.Init(
+			service,
+			config.Microservice.ShardingLoadService,
+			mw,
+		)
+		if err != nil {
+			panic(err)
+		}
+	} else if *serviceName == "transformservice" {
+		// err = tra.Init(
+		// 	service,
+		// 	config.Microservice.OrderService,
+		// )
+		// if err != nil {
+		// 	panic(err)
+		// }
+	} else {
+		panic("service name is not valid")
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Order interface {
+type Service interface {
 	MoveDataThroughShard(ctx context.Context) error
 	InsertToShard(ctx context.Context, param params.ServiceInsertOrdersToShardParam) error
 	InsertToLongTerm(ctx context.Context, param params.ServiceInsertOrdersToLongTermParam) error
@@ -36,7 +36,7 @@ func New(
 	orderRepo order.Repository,
 	beginShardTx func(ctx context.Context, dbIdx int) (*sqlx.Tx, error),
 	beginLongTermTx func(ctx context.Context) (*sqlx.Tx, error),
-) Order {
+) Service {
 	return service{
 		config:          config,
 		shardRepo:       shardRepo,

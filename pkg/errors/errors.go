@@ -18,14 +18,13 @@ var (
 )
 
 var (
-	ErrAccountNotFound   = errors.New("account not found")
-	ErrDoctorNotFound    = errors.New("doctor not found")
-	ErrRecordNotFound    = errors.New("record not found")
-	ErrPermissionExpired = errors.New("permission expired")
-	ErrEmailDuplicated   = errors.New("email is already exist")
-	ErrUsernameNotExist  = errors.New("username not exists")
-	ErrBeginTransaction  = errors.New("failed begin transaction")
-	ErrCommitTransaction = errors.New("failed commit transaction")
+	ErrAccountNotFound    = errors.New("account not found")
+	ErrRecordNotFound     = errors.New("record not found")
+	ErrPermissionExpired  = errors.New("permission expired")
+	ErrUsernameDuplicated = errors.New("username is already exist")
+	ErrUsernameNotExist   = errors.New("username not exists")
+	ErrBeginTransaction   = errors.New("failed begin transaction")
+	ErrCommitTransaction  = errors.New("failed commit transaction")
 )
 
 var (
@@ -50,12 +49,12 @@ func init() {
 	})
 }
 
-func Wrap(cause error, msg string) error {
+func Wrap(cause error) error {
 	if cause == nil {
 		return nil
 	}
 
-	return errorsx.WrapPrefix(cause, msg, 0)
+	return errorsx.Wrap(cause, 0)
 }
 
 func Unwrap(err error) error {
@@ -70,7 +69,7 @@ func Unwrap(err error) error {
 }
 
 func ErrorStack(err error) {
-	log.Warningln(errorsx.New(err).ErrorStack())
+	log.Warningln(err.(*errorsx.Error).ErrorStack())
 }
 
 func New(e interface{}) *errorsx.Error {

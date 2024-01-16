@@ -1,0 +1,50 @@
+package params
+
+import (
+	"skripsi-be/type/model"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/google/uuid"
+)
+
+type ServiceRegisterAdmin struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Name     string `json:"name"`
+
+	RequestBy uuid.UUID `json:"-"`
+}
+
+func (s ServiceRegisterAdmin) Validate() error {
+	return validation.ValidateStruct(&s,
+		validation.Field(&s.Username, validation.Required),
+		validation.Field(&s.Password, validation.Required, validation.Length(8, 72)),
+		validation.Field(&s.Name, validation.Required),
+	)
+}
+
+func (s ServiceRegisterAdmin) ToAccountModel() model.Account {
+	return model.Account{
+		Username: s.Username,
+		Password: s.Password,
+	}
+}
+
+func (s ServiceRegisterAdmin) ToAdminModel(accountID uuid.UUID) model.Admin {
+	return model.Admin{
+		Name:      s.Name,
+		AccountID: accountID,
+	}
+}
+
+type ServiceLoginAdmin struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func (s ServiceLoginAdmin) Validate() error {
+	return validation.ValidateStruct(&s,
+		validation.Field(&s.Username, validation.Required),
+		validation.Field(&s.Password, validation.Required),
+	)
+}

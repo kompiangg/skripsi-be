@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"skripsi-be/config"
+	"skripsi-be/repository/account"
+	"skripsi-be/repository/admin"
 	"skripsi-be/repository/order"
 	"skripsi-be/repository/shard"
 
@@ -13,6 +15,8 @@ import (
 type Repository struct {
 	Sharding     shard.Repository
 	Order        order.Repository
+	Account      account.Repository
+	Admin        admin.Repository
 	LongTermDBTx func(ctx context.Context) (*sqlx.Tx, error)
 	ShardDBTx    func(ctx context.Context, dbIndex int) (*sqlx.Tx, error)
 }
@@ -32,6 +36,7 @@ func beginShardDBTx(shardingDatabase []*sqlx.DB) func(ctx context.Context, dbInd
 func New(
 	config config.Config,
 	longTermDatabase *sqlx.DB,
+	generalDatabase *sqlx.DB,
 	shardingDatabase []*sqlx.DB,
 	redis *redis.Client,
 ) (Repository, error) {
@@ -49,9 +54,21 @@ func New(
 		shardingDatabase,
 	)
 
+	account := account.New(
+		account.Config{},
+		generalDatabase,
+	)
+
+	admin := admin.New(
+		admin.Config{},
+		generalDatabase,
+	)
+
 	return Repository{
 		Sharding:     sharding,
 		Order:        order,
+		Account:      account,
+		Admin:        admin,
 		LongTermDBTx: beginLongTermDBTx(longTermDatabase),
 		ShardDBTx:    beginShardDBTx(shardingDatabase),
 	}, nil

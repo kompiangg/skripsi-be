@@ -3,11 +3,13 @@ package service
 import (
 	"skripsi-be/config"
 	"skripsi-be/repository"
+	"skripsi-be/service/auth"
 	"skripsi-be/service/order"
 )
 
 type Service struct {
-	Order order.Order
+	Order order.Service
+	Auth  auth.Service
 }
 
 func New(
@@ -25,7 +27,16 @@ func New(
 		repository.LongTermDBTx,
 	)
 
+	auth := auth.New(
+		auth.Config{
+			Admin: config.JWT.Admin,
+		},
+		repository.Account,
+		repository.Admin,
+	)
+
 	return Service{
 		Order: order,
+		Auth:  auth,
 	}, nil
 }

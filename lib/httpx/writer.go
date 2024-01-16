@@ -1,14 +1,13 @@
 package httpx
 
 import (
-	"errors"
 	"log"
 	"net/http"
-	"strings"
 
 	x "skripsi-be/pkg/errors"
 	httppkg "skripsi-be/pkg/http"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/labstack/echo/v4"
 )
 
@@ -30,22 +29,29 @@ func WriteResponse(c echo.Context, code int, data interface{}) error {
 }
 
 func WriteErrorResponse(c echo.Context, errParam error, detail interface{}) error {
-	e := httppkg.GetResponseErr(errParam)
+	var e httppkg.ErrorSchema
+	var echoHTTPError *echo.HTTPError
+	var validationError validation.Errors
 
-	if x.Is(errParam, x.ErrValidation) {
+	if x.As(errParam, &validationError) {
 		e.Message = x.ErrBadRequest.Error()
 		e.HTTPErrorCode = echo.ErrBadRequest.Code
-
-		// To getting the Unwrap method from private object joinError in "errors" package
-		var joinErr interface{ Unwrap() []error }
-		if errors.As(errParam, &joinErr) {
-			errs := joinErr.Unwrap()[1].Error()
-			detail = strings.Split(errs, "\n --- ")[1:]
+		detail = validationError.Error()
+	} else if x.As(errParam, &echoHTTPError) {
+		if echoHTTPError.Code == http.StatusInternalServerError {
+			x.ErrorStack(errParam)
+			detail = nil
+		} else if echoHTTPError.Code == http.StatusBadRequest {
+			e.Message = x.ErrBadRequest.Error()
+			e.HTTPErrorCode = echo.ErrBadRequest.Code
+			detail = echoHTTPError.Error()
 		}
-	} else if e.HTTPErrorCode == http.StatusInternalServerError {
-		x.ErrorStack(errParam)
-		detail = nil
 	} else {
+		e = httppkg.GetResponseErr(errParam)
+		if e.HTTPErrorCode == http.StatusInternalServerError {
+			x.ErrorStack(errParam)
+		}
+
 		detail = nil
 	}
 

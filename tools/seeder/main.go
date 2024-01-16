@@ -48,7 +48,7 @@ func main() {
 		log.Info().Msg("All connections closed, RIP 🙏")
 	}()
 
-	repo, err := repository.New(cfg, connections.LongTermDatabase, connections.ShardingDatabase, connections.Redis)
+	repo, err := repository.New(cfg, connections.LongTermDatabase, connections.GeneralDatabase, connections.ShardingDatabase, connections.Redis)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create repository")
 	}
