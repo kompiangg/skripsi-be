@@ -2,10 +2,9 @@ package errors
 
 import (
 	"errors"
-	"os"
 
 	errorsx "github.com/go-errors/errors"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -36,19 +35,6 @@ var (
 	ErrFailedCastJWTClaims = errors.New("failed to cast jwt claims")
 )
 
-var log *logrus.Logger
-
-func init() {
-	log = logrus.New()
-	log.SetOutput(os.Stdout)
-	log.SetFormatter(&logrus.TextFormatter{
-		DisableColors: false,
-		FullTimestamp: true,
-		DisableQuote:  true,
-		PadLevelText:  false,
-	})
-}
-
 func Wrap(cause error) error {
 	if cause == nil {
 		return nil
@@ -69,7 +55,7 @@ func Unwrap(err error) error {
 }
 
 func ErrorStack(err error) {
-	log.Warningln(err.(*errorsx.Error).ErrorStack())
+	log.Err(err).Msgf("%+v", err.(*errorsx.Error).ErrorStack())
 }
 
 func New(e interface{}) *errorsx.Error {

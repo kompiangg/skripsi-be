@@ -1,7 +1,6 @@
 package httpx
 
 import (
-	"log"
 	"net/http"
 
 	x "skripsi-be/pkg/errors"
@@ -9,6 +8,7 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 )
 
 func WriteResponse(c echo.Context, code int, data interface{}) error {
@@ -21,7 +21,7 @@ func WriteResponse(c echo.Context, code int, data interface{}) error {
 		Data:  data,
 	})
 	if err != nil {
-		log.Println("[WriteResponse] FATAL ERROR on send response to client:", err)
+		log.Err(err).Msg("[WriteResponse] FATAL ERROR on send response to client")
 		return err
 	}
 
@@ -64,7 +64,7 @@ func WriteErrorResponse(c echo.Context, errParam error, detail interface{}) erro
 	})
 
 	if err != nil {
-		log.Println("[WriteErrorResponse] FATAL ERROR on send response to client:", err)
+		log.Err(err).Msgf("[WriteErrorResponse] FATAL ERROR on send response to client")
 		return err
 	}
 

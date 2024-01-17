@@ -26,3 +26,26 @@ func (r repository) InsertNewAdmin(ctx context.Context, admin model.Admin) error
 
 	return nil
 }
+
+func (r repository) InsertNewCashier(ctx context.Context, cashier model.Cashier) error {
+	q := `
+	INSERT INTO cashiers (
+		id,
+		account_id,
+		store_id,
+		name
+	) VALUES (
+		:id,
+		:account_id,
+		:store_id,
+		:name
+	);
+	`
+
+	_, err := r.generalDB.NamedExecContext(ctx, q, cashier)
+	if err != nil {
+		return errors.New(err)
+	}
+
+	return nil
+}

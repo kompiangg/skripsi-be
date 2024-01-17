@@ -13,3 +13,12 @@ type Cashier struct {
 	Name      string    `db:"name"`
 	CreatedAt time.Time `db:"created_at"`
 }
+
+func (c *Cashier) AssignUUID() bool {
+	if c.ID != uuid.Nil {
+		return false
+	}
+
+	c.ID = uuid.New()
+	return true
+}

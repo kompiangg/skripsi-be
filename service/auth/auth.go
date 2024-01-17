@@ -12,10 +12,13 @@ import (
 type Service interface {
 	RegisterAdmin(ctx context.Context, param params.ServiceRegisterAdmin) error
 	AdminLogin(ctx context.Context, param params.ServiceLoginAdmin) (result.ServiceAdminLoginResult, error)
+	CashierLogin(ctx context.Context, param params.ServiceLoginCashier) (result.ServiceCashierLoginResult, error)
+	RegisterCashier(ctx context.Context, param params.ServiceRegisterCashier) error
 }
 
 type Config struct {
-	Admin config.AdminJWTConfig
+	Admin   config.AdminJWTConfig
+	Cashier config.CashierJWTConfig
 }
 
 type service struct {
