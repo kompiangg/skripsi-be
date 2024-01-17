@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"skripsi-be/cmd/longtermloadservice/handler/healthz"
 	"skripsi-be/cmd/middleware"
 	"skripsi-be/service"
 
@@ -12,4 +13,5 @@ func Init(
 	service service.Service,
 	middleware middleware.Middleware,
 ) {
+	healthz.Init(echo)
 }
