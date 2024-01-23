@@ -10,7 +10,9 @@ import (
 
 type Repository interface {
 	InsertToShardDB(ctx context.Context, tx *sqlx.Tx, orders []model.Order) error
+	InsertDetailsToShardDB(ctx context.Context, tx *sqlx.Tx, orderDetails []model.OrderDetail) error
 	InsertToLongTermDB(ctx context.Context, tx *sqlx.Tx, orders []model.Order) error
+	InsertDetailsToLongTermDB(ctx context.Context, tx *sqlx.Tx, orderDetails []model.OrderDetail) error
 	DeleteAllDataFromOneDB(ctx context.Context, tx *sqlx.Tx) error
 	FindAllOnShardDB(ctx context.Context, dbIndex int) ([]model.Order, error)
 }

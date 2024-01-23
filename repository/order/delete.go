@@ -14,7 +14,6 @@ func (r repository) DeleteAllDataFromOneDB(ctx context.Context, tx *sqlx.Tx) err
 
 	_, err := tx.ExecContext(ctx, deleteQuery)
 	if err != nil {
-		tx.Rollback()
 		return errors.New(err)
 	}
 

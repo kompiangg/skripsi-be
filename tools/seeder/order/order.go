@@ -21,6 +21,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
+	"github.com/shopspring/decimal"
 	"github.com/volatiletech/null/v9"
 )
 
@@ -73,9 +74,14 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 		}
 	}
 
+	afnUSDRate, err := connections.Redis.Get(ctx, "USD_AFN").Float64()
+	if err != nil {
+		return errors.Wrap(err, constant.SkipErrorParameter)
+	}
+
 	iteration := 1
 	for i := 0; i < iteration; i++ {
-		orders, err := loadOrder("./dataset/fact_table.csv", stores, storeCashier, customers, payments, items, config)
+		orders, detailOrders, err := loadOrder("./dataset/fact_table.csv", stores, storeCashier, customers, payments, items, config, decimal.NewFromFloat(afnUSDRate))
 		if err != nil {
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}
@@ -83,33 +89,53 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 		longTermParams := make(params.ServiceInsertOrdersToLongTermParam, 0)
 		shardParams := make(params.ServiceInsertOrdersToShardParam, 0)
 
-		for _, order := range orders {
+		orderIDMap := map[string]int{}
+
+		for idx, order := range orders {
+			if _, ok := orderIDMap[order.ID.String()]; !ok {
+				orderIDMap[order.ID.String()] = idx
+			}
+
 			longTermParams = append(longTermParams, params.ServiceInsertOrderToLongTermParam{
 				ID:         order.ID,
-				ItemID:     order.ItemID,
-				StoreID:    order.StoreID,
 				CashierID:  order.CashierID,
-				CustomerID: order.CustomerID,
-				Unit:       order.Unit,
+				StoreID:    order.StoreID.String,
+				PaymentID:  order.PaymentID.String,
+				CustomerID: order.CustomerID.String,
+				Currency:   order.Currency.String,
+				UsdRate:    order.UsdRate,
 				CreatedAt:  order.CreatedAt,
-				Price:      order.Price.Float64,
-				TotalPrice: order.TotalPrice.Float64,
-				PaymentID:  order.PaymentID,
-				Quantity:   order.Quantity.Int,
 			})
 
-			shardParams = append(shardParams, params.ServiceInsertOrderToShardParam{
+			shardParams = append(shardParams, params.ServiceInsertOrderToShard{
 				ID:         order.ID,
-				ItemID:     order.ItemID,
-				StoreID:    order.StoreID,
 				CashierID:  order.CashierID,
-				CustomerID: order.CustomerID,
-				Unit:       order.Unit,
+				StoreID:    order.StoreID.String,
+				PaymentID:  order.PaymentID.String,
+				CustomerID: order.CustomerID.String,
+				Currency:   order.Currency.String,
+				UsdRate:    order.UsdRate,
 				CreatedAt:  order.CreatedAt,
-				Price:      order.Price.Float64,
-				TotalPrice: order.TotalPrice.Float64,
-				PaymentID:  order.PaymentID,
-				Quantity:   order.Quantity.Int,
+			})
+		}
+
+		for _, orderDetail := range detailOrders {
+			idx := orderIDMap[orderDetail.OrderID.String()]
+
+			longTermParams[idx].OrderDetails = append(longTermParams[idx].OrderDetails, params.OrderDetailsLongTerm{
+				ID:       orderDetail.ID,
+				ItemID:   orderDetail.ItemID.String,
+				Quantity: orderDetail.Quantity.Int64,
+				Unit:     orderDetail.Unit.String,
+				Price:    orderDetail.Price,
+			})
+
+			shardParams[idx].OrderDetails = append(shardParams[idx].OrderDetails, params.OrderDetailsShard{
+				ID:       orderDetail.ID,
+				ItemID:   orderDetail.ItemID.String,
+				Quantity: orderDetail.Quantity.Int64,
+				Unit:     orderDetail.Unit.String,
+				Price:    orderDetail.Price,
 			})
 		}
 
@@ -127,17 +153,17 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 	return nil
 }
 
-func loadOrder(path string, stores []model.Store, storeCashier map[string][]model.Cashier, customers []model.Customer, payments []model.PaymentType, items []model.Item, config config.Config) ([]model.Order, error) {
+func loadOrder(path string, stores []model.Store, storeCashier map[string][]model.Cashier, customers []model.Customer, payments []model.PaymentType, items []model.Item, config config.Config, usdRate decimal.Decimal) ([]model.Order, []model.OrderDetail, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, errors.Wrap(err, constant.SkipErrorParameter)
+		return nil, nil, errors.Wrap(err, constant.SkipErrorParameter)
 	}
 	defer file.Close()
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
-		return nil, errors.Wrap(err, constant.SkipErrorParameter)
+		return nil, nil, errors.Wrap(err, constant.SkipErrorParameter)
 	}
 
 	lenCustomers := len(customers)
@@ -146,6 +172,9 @@ func loadOrder(path string, stores []model.Store, storeCashier map[string][]mode
 	lenStores := len(stores)
 
 	orders := make([]model.Order, 0)
+	orderDetails := make([]model.OrderDetail, 0)
+	idMap := map[string]string{}
+
 	for idx, record := range records {
 		if idx == 0 {
 			continue
@@ -167,50 +196,81 @@ func loadOrder(path string, stores []model.Store, storeCashier map[string][]mode
 		cashierStore := storeCashier[stores[randStore].ID]
 		randCashier := r.Intn(len(cashierStore))
 
-		orderQty, err := strconv.Atoi(record[5])
+		orderQty, err := strconv.ParseInt(record[5], 10, 64)
 		if err != nil {
-			return nil, errors.Wrap(err, constant.SkipErrorParameter)
+			return nil, nil, errors.Wrap(err, constant.SkipErrorParameter)
 		}
 
 		orderPrice, err := strconv.ParseFloat(record[7], 64)
 		if err != nil {
-			return nil, errors.Wrap(err, constant.SkipErrorParameter)
+			return nil, nil, errors.Wrap(err, constant.SkipErrorParameter)
 		}
 
-		totalPrice, err := strconv.ParseFloat(record[8], 64)
-		if err != nil {
-			return nil, errors.Wrap(err, constant.SkipErrorParameter)
-		}
-
-		start := time.Date(2023, 6, 1, 0, 0, 0, 0, time.FixedZone("Asia/Makassar", 8*60*60))
+		start := time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC)
 		end := config.Date.Now()
 		diff := end.Unix() - start.Unix()
 		randSeconds := r.Int63n(diff)
 		randTime := start.Add(time.Duration(randSeconds) * time.Second)
 
 		uuidExists := map[string]bool{}
-		uuidOrderID := uuid.New()
+		uuidOrderDetailsExists := map[string]bool{}
 
-		for uuidExists[uuidOrderID.String()] {
-			uuidOrderID = uuid.New()
+		if orderID, ok := idMap[record[2]]; ok {
+			uuidOrderID := uuid.MustParse(orderID)
+			uuidOrderDetailsID := uuid.New()
+
+			for uuidOrderDetailsExists[uuidOrderDetailsID.String()] {
+				uuidOrderDetailsID = uuid.New()
+			}
+
+			orderDetails = append(orderDetails, model.OrderDetail{
+				ID:       uuidOrderDetailsID,
+				OrderID:  uuidOrderID,
+				ItemID:   null.NewString(items[randItem].ID, true),
+				Quantity: null.NewInt64(orderQty, true),
+				Unit:     null.NewString(record[6], true),
+				Price:    decimal.NewFromFloat(orderPrice),
+			})
+		} else {
+			uuidOrderID := uuid.New()
+			for uuidExists[uuidOrderID.String()] {
+				uuidOrderID = uuid.New()
+			}
+
+			uuidOrderDetailsID := uuid.New()
+			for uuidOrderDetailsExists[uuidOrderDetailsID.String()] {
+				uuidOrderDetailsID = uuid.New()
+			}
+
+			idMap[record[2]] = uuidOrderID.String()
+
+			orders = append(orders, model.Order{
+				ID:            uuidOrderID,
+				CashierID:     cashierStore[randCashier].ID,
+				StoreID:       null.StringFrom(stores[randStore].ID),
+				PaymentID:     null.StringFrom(payments[randPayment].ID),
+				CustomerID:    null.StringFrom(customers[randCustomer].ID),
+				TotalQuantity: null.NewInt64(0, true),
+				TotalUnit:     null.Int64From(0),
+				TotalPrice:    decimal.NewFromInt(0),
+				Currency:      null.StringFrom("AFN"),
+				UsdRate:       usdRate,
+				CreatedAt:     randTime,
+			})
+
+			orderDetails = append(orderDetails, model.OrderDetail{
+				ID:       uuidOrderDetailsID,
+				OrderID:  uuidOrderID,
+				ItemID:   null.NewString(items[randItem].ID, true),
+				Quantity: null.NewInt64(orderQty, true),
+				Unit:     null.NewString(record[6], true),
+				Price:    decimal.NewFromFloat(orderPrice),
+			})
 		}
 
-		orders = append(orders, model.Order{
-			ID:         uuidOrderID,
-			ItemID:     null.NewString(items[randItem].ID, true),
-			StoreID:    null.NewString(stores[randStore].ID, true),
-			CashierID:  uuid.NullUUID{UUID: cashierStore[randCashier].ID, Valid: true},
-			CustomerID: null.NewString(customers[randCustomer].ID, true),
-			PaymentID:  null.NewString(payments[randPayment].ID, true),
-			Quantity:   null.NewInt(orderQty, true),
-			Unit:       null.NewString(record[6], true),
-			Price:      null.NewFloat64(orderPrice, true),
-			TotalPrice: null.NewFloat64(totalPrice, true),
-			CreatedAt:  randTime,
-		})
 	}
 
-	return orders, nil
+	return orders, orderDetails, nil
 }
 
 func findAllCashier(ctx context.Context, generalDB *sqlx.DB) ([]model.Cashier, error) {

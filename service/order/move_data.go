@@ -18,7 +18,7 @@ func (s service) MoveDataThroughShard(ctx context.Context) error {
 
 	shardCount++
 	for idx := len(s.config.Shards) - 1; idx >= 0; idx-- {
-		if shardCount%s.config.Shards[idx].RangeInDay != 0 {
+		if shardCount%s.config.Shards[idx].DataRetention != 0 {
 			continue
 		}
 
@@ -65,7 +65,7 @@ func (s service) MoveDataThroughShard(ctx context.Context) error {
 		}
 	}
 
-	if shardCount == s.config.Shards[len(s.config.Shards)-1].RangeInDay {
+	if shardCount == s.config.Shards[len(s.config.Shards)-1].DataRetention {
 		shardCount = 0
 	}
 

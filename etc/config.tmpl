@@ -13,13 +13,13 @@ LongTermDatabase:
 
 ShardingDatabase:
   Shards:
-    - RangeInDay: 1
+    - DataRetention: 1
       URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-oneDay?sslmode=disable"
-    - RangeInDay: 7
+    - DataRetention: 7
       URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-sevenDay?sslmode=disable"
-    - RangeInDay: 30
+    - DataRetention: 30
       URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-thirtyDay?sslmode=disable"
-    - RangeInDay: 90
+    - DataRetention: 90
       URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-ninetyDay?sslmode=disable"
 
 Redis:

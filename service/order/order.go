@@ -6,6 +6,7 @@ import (
 	"skripsi-be/repository/order"
 	"skripsi-be/repository/shard"
 	"skripsi-be/type/params"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -26,8 +27,9 @@ type service struct {
 	shardRepo shard.Repository
 	orderRepo order.Repository
 
-	beginShardTx    func(ctx context.Context, dbIdx int) (*sqlx.Tx, error)
-	beginLongTermTx func(ctx context.Context) (*sqlx.Tx, error)
+	beginShardTx            func(ctx context.Context, dbIdx int) (*sqlx.Tx, error)
+	beginLongTermTx         func(ctx context.Context) (*sqlx.Tx, error)
+	getShardIndexByDateTime func(date time.Time, now time.Time) (int, error)
 }
 
 func New(
@@ -36,12 +38,14 @@ func New(
 	orderRepo order.Repository,
 	beginShardTx func(ctx context.Context, dbIdx int) (*sqlx.Tx, error),
 	beginLongTermTx func(ctx context.Context) (*sqlx.Tx, error),
+	getShardIndexByDateTime func(date time.Time, now time.Time) (int, error),
 ) Service {
 	return service{
-		config:          config,
-		shardRepo:       shardRepo,
-		orderRepo:       orderRepo,
-		beginShardTx:    beginShardTx,
-		beginLongTermTx: beginLongTermTx,
+		config:                  config,
+		shardRepo:               shardRepo,
+		orderRepo:               orderRepo,
+		beginShardTx:            beginShardTx,
+		beginLongTermTx:         beginLongTermTx,
+		getShardIndexByDateTime: getShardIndexByDateTime,
 	}
 }

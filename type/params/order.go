@@ -8,53 +8,87 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"github.com/volatiletech/null/v9"
 )
 
-type ServiceInsertOrderToShardParam struct {
-	ID         uuid.UUID     `json:"id"`
-	ItemID     null.String   `json:"item_id"`
-	StoreID    null.String   `json:"store_id"`
-	CustomerID null.String   `json:"customer_id"`
-	CashierID  uuid.NullUUID `json:"cashier_id"`
-	Unit       null.String   `json:"unit"`
-	CreatedAt  time.Time     `json:"created_at"`
-	Price      float64       `json:"price"`
-	TotalPrice float64       `json:"total_price"`
-	PaymentID  null.String   `json:"payment_id"`
-	Quantity   int           `json:"quantity"`
+type ServiceInsertOrderToShard struct {
+	ID           uuid.UUID           `json:"id"`
+	CashierID    uuid.UUID           `json:"cashier_id"`
+	StoreID      string              `json:"store_id"`
+	PaymentID    string              `json:"payment_id"`
+	CustomerID   string              `json:"customer_id"`
+	Currency     string              `json:"currency"`
+	UsdRate      decimal.Decimal     `json:"usd_rate"`
+	CreatedAt    time.Time           `json:"created_at"`
+	OrderDetails []OrderDetailsShard `json:"order_details"`
 }
 
-func (s ServiceInsertOrderToShardParam) ToOrderModel() model.Order {
+type OrderDetailsShard struct {
+	ID       uuid.UUID       `json:"id"`
+	ItemID   string          `json:"item_id"`
+	Quantity int64           `json:"quantity"`
+	Unit     string          `json:"unit"`
+	Price    decimal.Decimal `json:"price"`
+}
+
+func (s ServiceInsertOrderToShard) ToOrderModel() model.Order {
+	totalQuantity := null.Int64From(0)
+	totalUnit := null.Int64From(0)
+	totalPrice := decimal.NewFromInt(0)
+
+	for _, orderDetail := range s.OrderDetails {
+		totalQuantity = null.NewInt64(totalQuantity.Int64+orderDetail.Quantity, true)
+		totalUnit = null.NewInt64(totalUnit.Int64+orderDetail.Quantity, true)
+		totalPrice = totalPrice.Add(orderDetail.Price)
+	}
+
 	return model.Order{
-		ID:         s.ID,
-		CashierID:  s.CashierID,
-		CustomerID: s.CustomerID,
-		ItemID:     s.ItemID,
-		StoreID:    s.StoreID,
-		PaymentID:  s.PaymentID,
-		Quantity:   null.NewInt(s.Quantity, true),
-		Unit:       null.NewString(s.Unit.String, true),
-		Price:      null.NewFloat64(s.Price, true),
-		TotalPrice: null.NewFloat64(s.TotalPrice, true),
-		CreatedAt:  s.CreatedAt,
+		ID:              s.ID,
+		CashierID:       s.CashierID,
+		StoreID:         null.StringFrom(s.StoreID),
+		PaymentID:       null.StringFrom(s.PaymentID),
+		TotalQuantity:   totalQuantity,
+		TotalUnit:       totalUnit,
+		TotalPrice:      totalPrice,
+		TotalPriceInUSD: totalPrice.Mul(s.UsdRate),
+		CustomerID:      null.StringFrom(s.CustomerID),
+		Currency:        null.StringFrom(s.Currency),
+		UsdRate:         s.UsdRate,
+		CreatedAt:       s.CreatedAt,
+		OrderDetails:    s.ToOrderDetailModel(),
 	}
 }
 
-type ServiceInsertOrdersToShardParam []ServiceInsertOrderToShardParam
+func (s ServiceInsertOrderToShard) ToOrderDetailModel() []model.OrderDetail {
+	orderDetails := make([]model.OrderDetail, 0)
+
+	for _, orderDetail := range s.OrderDetails {
+		orderDetails = append(orderDetails, model.OrderDetail{
+			ID:       orderDetail.ID,
+			OrderID:  s.ID,
+			ItemID:   null.StringFrom(orderDetail.ItemID),
+			Quantity: null.NewInt64(orderDetail.Quantity, true),
+			Unit:     null.StringFrom(orderDetail.Unit),
+			Price:    orderDetail.Price,
+		})
+	}
+
+	return orderDetails
+}
+
+type ServiceInsertOrdersToShardParam []ServiceInsertOrderToShard
 
 func (s ServiceInsertOrdersToShardParam) Validate(ctx context.Context) error {
 	for _, order := range s {
 		err := validation.ValidateStructWithContext(ctx, &order,
 			validation.Field(&order.ID, validation.Required, validation.NotNil, is.UUIDv4),
-			validation.Field(&order.ItemID, validation.Required, validation.NotNil, is.UUIDv4),
-			validation.Field(&order.StoreID, validation.Required, validation.NotNil, is.UUIDv4),
-			validation.Field(&order.CustomerID, validation.Required, validation.NotNil, is.UUIDv4),
+			validation.Field(&order.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
+			validation.Field(&order.StoreID, validation.Required, validation.NotNil),
 			validation.Field(&order.PaymentID, validation.Required, validation.NotNil),
-			validation.Field(&order.Quantity, validation.Required, validation.NotNil),
-			validation.Field(&order.Unit, validation.Required, validation.NotNil),
-			validation.Field(&order.Price, validation.Required, validation.NotNil),
-			validation.Field(&order.TotalPrice, validation.Required, validation.NotNil),
+			validation.Field(&order.CustomerID, validation.Required, validation.NotNil),
+			validation.Field(&order.Currency, validation.Required, validation.NotNil),
+			validation.Field(&order.UsdRate, validation.Required, validation.NotNil),
 			validation.Field(&order.CreatedAt, validation.Required, validation.NotNil),
 		)
 
@@ -67,33 +101,66 @@ func (s ServiceInsertOrdersToShardParam) Validate(ctx context.Context) error {
 }
 
 type ServiceInsertOrderToLongTermParam struct {
-	ID         uuid.UUID     `json:"id"`
-	CashierID  uuid.NullUUID `json:"cashier_id"`
-	ItemID     null.String   `json:"item_id"`
-	StoreID    null.String   `json:"store_id"`
-	CustomerID null.String   `json:"customer_id"`
-	Unit       null.String   `json:"unit"`
-	CreatedAt  time.Time     `json:"created_at"`
-	Price      float64       `json:"price"`
-	TotalPrice float64       `json:"total_price"`
-	PaymentID  null.String   `json:"payment_id"`
-	Quantity   int           `json:"quantity"`
+	ID           uuid.UUID       `json:"id"`
+	CashierID    uuid.UUID       `json:"cashier_id"`
+	StoreID      string          `json:"store_id"`
+	PaymentID    string          `json:"payment_id"`
+	CustomerID   string          `json:"customer_id"`
+	Currency     string          `json:"currency"`
+	UsdRate      decimal.Decimal `json:"usd_rate"`
+	CreatedAt    time.Time       `json:"created_at"`
+	OrderDetails []OrderDetailsLongTerm
+}
+
+type OrderDetailsLongTerm struct {
+	ID       uuid.UUID       `json:"id"`
+	ItemID   string          `json:"item_id"`
+	Quantity int64           `json:"quantity"`
+	Unit     string          `json:"unit"`
+	Price    decimal.Decimal `json:"price"`
 }
 
 func (s ServiceInsertOrderToLongTermParam) ToOrderModel() model.Order {
-	return model.Order{
-		ID:         s.ID,
-		CashierID:  s.CashierID,
-		CustomerID: s.CustomerID,
-		ItemID:     s.ItemID,
-		StoreID:    s.StoreID,
-		PaymentID:  s.PaymentID,
-		Quantity:   null.NewInt(s.Quantity, true),
-		Unit:       null.NewString(s.Unit.String, true),
-		Price:      null.NewFloat64(s.Price, true),
-		TotalPrice: null.NewFloat64(s.TotalPrice, true),
-		CreatedAt:  s.CreatedAt,
+	totalQuantity := null.Int64From(0)
+	totalUnit := null.Int64From(0)
+	totalPrice := decimal.NewFromInt(0)
+
+	for _, orderDetail := range s.OrderDetails {
+		totalQuantity = null.NewInt64(totalQuantity.Int64+orderDetail.Quantity, true)
+		totalUnit = null.NewInt64(totalUnit.Int64+orderDetail.Quantity, true)
+		totalPrice = totalPrice.Add(orderDetail.Price)
 	}
+
+	return model.Order{
+		ID:              s.ID,
+		CashierID:       s.CashierID,
+		StoreID:         null.StringFrom(s.StoreID),
+		PaymentID:       null.StringFrom(s.PaymentID),
+		CustomerID:      null.StringFrom(s.CustomerID),
+		Currency:        null.StringFrom(s.Currency),
+		TotalQuantity:   totalQuantity,
+		TotalUnit:       totalUnit,
+		TotalPrice:      totalPrice,
+		TotalPriceInUSD: totalPrice.Mul(s.UsdRate),
+		UsdRate:         s.UsdRate,
+		CreatedAt:       s.CreatedAt,
+	}
+}
+
+func (s ServiceInsertOrderToLongTermParam) ToOrderDetailModel() []model.OrderDetail {
+	orderDetails := make([]model.OrderDetail, 0)
+	for _, orderDetail := range s.OrderDetails {
+		orderDetails = append(orderDetails, model.OrderDetail{
+			ID:       orderDetail.ID,
+			OrderID:  s.ID,
+			ItemID:   null.StringFrom(orderDetail.ItemID),
+			Quantity: null.NewInt64(orderDetail.Quantity, true),
+			Unit:     null.StringFrom(orderDetail.Unit),
+			Price:    orderDetail.Price,
+		})
+	}
+
+	return orderDetails
 }
 
 type ServiceInsertOrdersToLongTermParam []ServiceInsertOrderToLongTermParam
@@ -102,14 +169,12 @@ func (s ServiceInsertOrdersToLongTermParam) Validate(ctx context.Context) error 
 	for _, order := range s {
 		err := validation.ValidateStructWithContext(ctx, &order,
 			validation.Field(&order.ID, validation.Required, validation.NotNil, is.UUIDv4),
-			validation.Field(&order.ItemID, validation.Required, validation.NotNil, is.UUIDv4),
-			validation.Field(&order.StoreID, validation.Required, validation.NotNil, is.UUIDv4),
-			validation.Field(&order.CustomerID, validation.Required, validation.NotNil, is.UUIDv4),
+			validation.Field(&order.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
+			validation.Field(&order.StoreID, validation.Required, validation.NotNil),
 			validation.Field(&order.PaymentID, validation.Required, validation.NotNil),
-			validation.Field(&order.Quantity, validation.Required, validation.NotNil),
-			validation.Field(&order.Unit, validation.Required, validation.NotNil),
-			validation.Field(&order.Price, validation.Required, validation.NotNil),
-			validation.Field(&order.TotalPrice, validation.Required, validation.NotNil),
+			validation.Field(&order.CustomerID, validation.Required, validation.NotNil),
+			validation.Field(&order.Currency, validation.Required, validation.NotNil),
+			validation.Field(&order.UsdRate, validation.Required, validation.NotNil),
 			validation.Field(&order.CreatedAt, validation.Required, validation.NotNil),
 		)
 

@@ -25,6 +25,7 @@ func New(
 		repository.Order,
 		repository.ShardDBTx,
 		repository.LongTermDBTx,
+		repository.GetShardIndexByDateTime,
 	)
 
 	auth := auth.New(

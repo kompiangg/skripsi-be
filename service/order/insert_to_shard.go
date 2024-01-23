@@ -10,14 +10,14 @@ import (
 )
 
 func (s service) InsertToShard(ctx context.Context, param params.ServiceInsertOrdersToShardParam) error {
-	// err := param.Validate(ctx)
-	// if err != nil {
-	// 	return errors.New(err)
-	// }
+	err := param.Validate(ctx)
+	if err != nil {
+		return errors.New(err)
+	}
 
 	orderDBIndex := make([][]model.Order, len(s.config.Shards))
 	for _, order := range param {
-		dbIdx, err := s.config.Shards.GetShardIndexByDateTime(order.CreatedAt, s.config.Date.Now())
+		dbIdx, err := s.getShardIndexByDateTime(order.CreatedAt, s.config.Date.Now())
 		if err != nil {
 			err = nil
 			continue
@@ -40,6 +40,14 @@ func (s service) InsertToShard(ctx context.Context, param params.ServiceInsertOr
 		if err != nil {
 			tx.Rollback()
 			return errors.Wrap(err, constant.SkipErrorParameter)
+		}
+
+		for idx := range orders {
+			err = s.orderRepo.InsertDetailsToShardDB(ctx, tx, orders[idx].OrderDetails)
+			if err != nil {
+				tx.Rollback()
+				return errors.Wrap(err, constant.SkipErrorParameter)
+			}
 		}
 
 		tx.Commit()
