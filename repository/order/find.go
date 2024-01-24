@@ -32,3 +32,25 @@ func (r repository) FindAllOnShardDB(ctx context.Context, dbIndex int) ([]model.
 
 	return orders, nil
 }
+
+func (r repository) FindOrderDetailsOnShardDB(ctx context.Context, dbIndex int) ([]model.OrderDetail, error) {
+	q := `
+		SELECT
+			id,
+			order_id,
+			item_id,
+			quantity,
+			unit,
+			price,
+		FROM
+			order_details
+	`
+
+	var orderDetails []model.OrderDetail
+	err := r.shardDB[dbIndex].SelectContext(ctx, &orderDetails, q)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	return orderDetails, nil
+}

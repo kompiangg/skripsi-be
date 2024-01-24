@@ -27,12 +27,23 @@ func (s service) MoveDataThroughShard(ctx context.Context) error {
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}
 
+		currentOrderDetails, err := s.orderRepo.FindOrderDetailsOnShardDB(ctx, idx)
+		if err != nil {
+			return errors.Wrap(err, constant.SkipErrorParameter)
+		}
+
 		currentIndexTx, err := s.beginShardTx(ctx, idx)
 		if err != nil {
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}
 
-		err = s.orderRepo.DeleteAllDataFromOneDB(ctx, currentIndexTx)
+		err = s.orderRepo.DeleteAllData(ctx, currentIndexTx)
+		if err != nil {
+			currentIndexTx.Rollback()
+			return errors.Wrap(err, constant.SkipErrorParameter)
+		}
+
+		err = s.orderRepo.DeleteOrderDetails(ctx, currentIndexTx)
 		if err != nil {
 			currentIndexTx.Rollback()
 			return errors.Wrap(err, constant.SkipErrorParameter)
@@ -46,6 +57,13 @@ func (s service) MoveDataThroughShard(ctx context.Context) error {
 			}
 
 			err = s.orderRepo.InsertToShardDB(ctx, afterIndexTx, currentData)
+			if err != nil {
+				afterIndexTx.Rollback()
+				currentIndexTx.Rollback()
+				return errors.Wrap(err, constant.SkipErrorParameter)
+			}
+
+			err = s.orderRepo.InsertDetailsToShardDB(ctx, afterIndexTx, currentOrderDetails)
 			if err != nil {
 				afterIndexTx.Rollback()
 				currentIndexTx.Rollback()

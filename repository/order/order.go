@@ -13,8 +13,10 @@ type Repository interface {
 	InsertDetailsToShardDB(ctx context.Context, tx *sqlx.Tx, orderDetails []model.OrderDetail) error
 	InsertToLongTermDB(ctx context.Context, tx *sqlx.Tx, orders []model.Order) error
 	InsertDetailsToLongTermDB(ctx context.Context, tx *sqlx.Tx, orderDetails []model.OrderDetail) error
-	DeleteAllDataFromOneDB(ctx context.Context, tx *sqlx.Tx) error
+	DeleteAllData(ctx context.Context, tx *sqlx.Tx) error
+	DeleteOrderDetails(ctx context.Context, tx *sqlx.Tx) error
 	FindAllOnShardDB(ctx context.Context, dbIndex int) ([]model.Order, error)
+	FindOrderDetailsOnShardDB(ctx context.Context, dbIndex int) ([]model.OrderDetail, error)
 }
 
 type Config struct {
