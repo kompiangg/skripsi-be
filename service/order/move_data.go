@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"skripsi-be/type/constant"
+	"skripsi-be/type/params"
 
 	"github.com/go-errors/errors"
 )
@@ -22,12 +23,16 @@ func (s service) MoveDataThroughShard(ctx context.Context) error {
 			continue
 		}
 
-		currentData, err := s.orderRepo.FindAllOnShardDB(ctx, idx)
+		currentData, err := s.orderRepo.FindAllOnShardDB(ctx, params.ShardTimeSeriesWhereQuery{
+			ShardIndex: idx,
+		})
 		if err != nil {
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}
 
-		currentOrderDetails, err := s.orderRepo.FindOrderDetailsOnShardDB(ctx, idx)
+		currentOrderDetails, err := s.orderRepo.FindOrderDetailsOnShardDB(ctx, params.FindOrderDetailsOnShardRepo{
+			ShardIndex: idx,
+		})
 		if err != nil {
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}

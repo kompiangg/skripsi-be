@@ -4,6 +4,7 @@ import (
 	"context"
 	"skripsi-be/config"
 	"skripsi-be/type/model"
+	"skripsi-be/type/params"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -15,8 +16,10 @@ type Repository interface {
 	InsertDetailsToLongTermDB(ctx context.Context, tx *sqlx.Tx, orderDetails []model.OrderDetail) error
 	DeleteAllData(ctx context.Context, tx *sqlx.Tx) error
 	DeleteOrderDetails(ctx context.Context, tx *sqlx.Tx) error
-	FindAllOnShardDB(ctx context.Context, dbIndex int) ([]model.Order, error)
-	FindOrderDetailsOnShardDB(ctx context.Context, dbIndex int) ([]model.OrderDetail, error)
+	FindAllOnShardDB(ctx context.Context, param params.ShardTimeSeriesWhereQuery) ([]model.Order, error)
+	FindOrderDetailsOnShardDB(ctx context.Context, param params.FindOrderDetailsOnShardRepo) ([]model.OrderDetail, error)
+	FindAllOnLongTermDB(ctx context.Context, param params.LongTermWhereQuery) ([]model.Order, error)
+	FindOrderDetailsOnLongTermDB(ctx context.Context, param params.FindOrderDetailsOnLongTermRepo) ([]model.OrderDetail, error)
 }
 
 type Config struct {
@@ -24,16 +27,19 @@ type Config struct {
 }
 
 type repository struct {
-	config  Config
-	shardDB []*sqlx.DB
+	config     Config
+	shardDB    []*sqlx.DB
+	longTermDB *sqlx.DB
 }
 
 func New(
 	config Config,
 	shardDB []*sqlx.DB,
+	longTermDB *sqlx.DB,
 ) Repository {
 	return repository{
-		config:  config,
-		shardDB: shardDB,
+		config:     config,
+		shardDB:    shardDB,
+		longTermDB: longTermDB,
 	}
 }

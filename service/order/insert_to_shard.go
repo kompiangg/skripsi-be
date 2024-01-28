@@ -17,7 +17,7 @@ func (s service) InsertToShard(ctx context.Context, param params.ServiceInsertOr
 
 	orderDBIndex := make([][]model.Order, len(s.config.Shards))
 	for _, order := range param {
-		dbIdx, err := s.getShardIndexByDateTime(order.CreatedAt, s.config.Date.Now())
+		dbIdx, err := s.getShardIndexByDateTime(order.CreatedAt)
 		if err != nil {
 			err = nil
 			continue

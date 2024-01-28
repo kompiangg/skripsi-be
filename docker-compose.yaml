@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  general-db:
+    image: postgres:14.7
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: general
+      POSTGRES_DB: general
+    volumes:
+      - general-db:/var/lib/postgresql/data
+    ports:
+      - 9999:5432
+  longterm-db:
+    image: postgres:14.7
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: longterm
+      POSTGRES_DB: longterm
+    volumes:
+      - longterm-db:/var/lib/postgresql/data
+    ports:
+      - 9000:5432
+  sharding-oneday-db:
+    image: postgres:14.7
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: sharding
+      POSTGRES_DB: sharding
+    volumes:
+      - sharding-oneday-db:/var/lib/postgresql/data
+    ports:
+      - 9001:5432
+  sharding-sevenday-db:
+    image: postgres:14.7
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: sharding
+      POSTGRES_DB: sharding
+    volumes:
+      - sharding-sevenday-db:/var/lib/postgresql/data
+    ports:
+      - 9002:5432
+  sharding-thirtyday-db:
+    image: postgres:14.7
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: sharding
+      POSTGRES_DB: sharding
+    volumes:
+      - sharding-thirtyday-db:/var/lib/postgresql/data
+    ports:
+      - 9003:5432
+  sharding-ninetyday-db:
+    image: postgres:14.7
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: sharding
+      POSTGRES_DB: sharding
+    volumes:
+      - sharding-ninetyday-db:/var/lib/postgresql/data
+    ports:
+      - 9004:5432
+
+volumes:
+  general-db:
+  longterm-db:
+  sharding-oneday-db:
+  sharding-sevenday-db:
+  sharding-thirtyday-db:
+  sharding-ninetyday-db:

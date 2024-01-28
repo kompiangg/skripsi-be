@@ -7,7 +7,7 @@ type Date struct {
 	Current        time.Time `yaml:"Current"`
 }
 
-func (d *Date) Now() time.Time {
+func (d Date) Now() time.Time {
 	if d.UsingCustomNow {
 		return d.Current
 	}

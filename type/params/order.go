@@ -144,6 +144,7 @@ func (s ServiceInsertOrderToLongTermParam) ToOrderModel() model.Order {
 		TotalPriceInUSD: totalPrice.Mul(s.UsdRate),
 		UsdRate:         s.UsdRate,
 		CreatedAt:       s.CreatedAt,
+		OrderDetails:    s.ToOrderDetailModel(),
 	}
 }
 
@@ -184,4 +185,9 @@ func (s ServiceInsertOrdersToLongTermParam) Validate(ctx context.Context) error 
 	}
 
 	return nil
+}
+
+type FindOrderService struct {
+	StartDate time.Time `json:"start_date"`
+	EndDate   time.Time `json:"end_date"`
 }

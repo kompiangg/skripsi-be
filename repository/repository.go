@@ -21,7 +21,7 @@ type Repository struct {
 	Admin                   admin.Repository
 	LongTermDBTx            func(ctx context.Context) (*sqlx.Tx, error)
 	ShardDBTx               func(ctx context.Context, dbIndex int) (*sqlx.Tx, error)
-	GetShardIndexByDateTime func(date time.Time, now time.Time) (int, error)
+	GetShardIndexByDateTime func(date time.Time) (int, error)
 	GetShardWhereQuery      func(startDate time.Time, endDate time.Time) ([]result.ShardTimeSeriesWhereQuery, error)
 }
 
@@ -44,6 +44,7 @@ func New(
 			ShardingDatabase: config.ShardingDatabase,
 		},
 		shardingDatabase,
+		longTermDatabase,
 	)
 
 	account := account.New(
@@ -63,7 +64,7 @@ func New(
 		Admin:                   admin,
 		LongTermDBTx:            beginLongTermDBTx(longTermDatabase),
 		ShardDBTx:               beginShardDBTx(shardingDatabase),
-		GetShardIndexByDateTime: getShardIndexByDateTime(config.ShardingDatabase.Shards),
+		GetShardIndexByDateTime: getShardIndexByDateTime(config.ShardingDatabase.Shards, config.Date),
 		GetShardWhereQuery:      getShardWhereQuery(config.ShardingDatabase.Shards, config.Date),
 	}, nil
 }

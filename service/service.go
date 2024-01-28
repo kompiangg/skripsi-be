@@ -18,14 +18,16 @@ func New(
 ) (Service, error) {
 	order := order.New(
 		order.Config{
-			Shards: config.ShardingDatabase.Shards,
-			Date:   config.Date,
+			IsUsingSharding: config.ShardingDatabase.IsUsingSharding,
+			Shards:          config.ShardingDatabase.Shards,
+			Date:            config.Date,
 		},
 		repository.Sharding,
 		repository.Order,
 		repository.ShardDBTx,
 		repository.LongTermDBTx,
 		repository.GetShardIndexByDateTime,
+		repository.GetShardWhereQuery,
 	)
 
 	auth := auth.New(

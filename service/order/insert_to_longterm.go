@@ -31,10 +31,12 @@ func (s service) InsertToLongTerm(ctx context.Context, param params.ServiceInser
 		return errors.Wrap(err, constant.SkipErrorParameter)
 	}
 
-	err = s.orderRepo.InsertDetailsToLongTermDB(ctx, tx, orders[0].OrderDetails)
-	if err != nil {
-		tx.Rollback()
-		return errors.Wrap(err, constant.SkipErrorParameter)
+	for idx := range orders {
+		err = s.orderRepo.InsertDetailsToLongTermDB(ctx, tx, orders[idx].OrderDetails)
+		if err != nil {
+			tx.Rollback()
+			return errors.Wrap(err, constant.SkipErrorParameter)
+		}
 	}
 
 	tx.Commit()
