@@ -1,53 +1,51 @@
 package shardingloadservice
 
 import (
-	"context"
-
+	"fmt"
 	"skripsi-be/config"
-	"skripsi-be/pkg/http"
 	"skripsi-be/service"
 
 	inmiddleware "skripsi-be/cmd/middleware"
-	"skripsi-be/cmd/shardingloadservice/handler"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/rs/zerolog/log"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 func Init(
 	service service.Service,
-	config config.ShardingLoadService,
+	kafkaConfig config.Kafka,
 	mw inmiddleware.Middleware,
 ) error {
-	e := echo.New()
-	e.Use(middleware.CORSWithConfig(
-		middleware.CORSConfig{
-			AllowOrigins: config.WhiteListAllowOrigin,
-		},
-	))
+	fmt.Println(kafkaConfig.Group.Shard)
 
-	handler.Init(e, service, mw)
-
-	log.Info().Msgf("Starting Auth Service HTTP server on %s:%d", config.Host, config.Port)
-	err := http.Start(http.HTTPServerConfig{
-		Echo: e,
-		Port: config.Port,
-		Host: config.Host,
+	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
+		"bootstrap.servers": kafkaConfig.Server,
+		"group.id":          kafkaConfig.Group.Shard,
+		"auto.offset.reset": "latest",
 	})
 	if err != nil {
 		return err
 	}
 
-	log.Info().Msg("Starting graceful shutdown HTTP Server...")
+	fmt.Println("Starting Sharding Load Service...")
+	defer consumer.Close()
+	fmt.Println(kafkaConfig.Topic)
 
-	err = e.Shutdown(context.Background())
+	err = consumer.Subscribe(kafkaConfig.Topic, nil)
 	if err != nil {
-		log.Error().Err(err).Msg("Error while shutting down HTTP server")
 		return err
 	}
 
-	log.Info().Msg("HTTP Server shutdown gracefully, RIP 🙏")
+	fmt.Println("Starting Sharding Load Service...")
+
+	for {
+		msg, err := consumer.ReadMessage(-1)
+		if err == nil {
+			fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
+		} else {
+			// The client will automatically try to recover from all errors.
+			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
+		}
+	}
 
 	return nil
 }

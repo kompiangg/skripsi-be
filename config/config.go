@@ -16,6 +16,7 @@ type Config struct {
 	Scheduler        Scheduler        `yaml:"Scheduler"`
 	Date             Date             `yaml:"Date"`
 	JWT              JWT              `yaml:"JWT"`
+	Kafka            Kafka            `yaml:"Kafka"`
 	UploadFolderPath string
 }
 

@@ -90,7 +90,7 @@ func main() {
 	} else if *serviceName == "ingestionservice" {
 		err = ingestionservice.Init(
 			service,
-			config.Microservice.IngestionService,
+			config.Kafka,
 			mw,
 		)
 		if err != nil {
@@ -99,7 +99,7 @@ func main() {
 	} else if *serviceName == "longtermloadservice" {
 		err = longtermloadservice.Init(
 			service,
-			config.Microservice.LongTermLoadService,
+			config.Kafka,
 			mw,
 		)
 		if err != nil {
@@ -131,7 +131,7 @@ func main() {
 	} else if *serviceName == "shardingloadservice" {
 		err = shardingloadservice.Init(
 			service,
-			config.Microservice.ShardingLoadService,
+			config.Kafka,
 			mw,
 		)
 		if err != nil {
