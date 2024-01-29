@@ -50,7 +50,7 @@ func main() {
 		panic(err)
 	}
 
-	service, err := service.New(
+	svc, err := service.New(
 		repository,
 		config,
 	)
@@ -58,9 +58,9 @@ func main() {
 		panic(err)
 	}
 
-	_ = task.New(service)
+	_ = task.New(svc)
 
-	paramStart, err := time.Parse("2006-01-02", "2023-12-01")
+	paramStart, err := time.Parse("2006-01-02", "2023-11-20")
 	if err != nil {
 		panic(err)
 	}
@@ -72,7 +72,7 @@ func main() {
 
 	startProcess := time.Now()
 
-	shardOrders, err := service.Order.FindOrder(context.Background(), params.FindOrderService{
+	shardOrders, err := svc.Order.FindOrder(context.Background(), params.FindOrderService{
 		StartDate: paramStart,
 		EndDate:   paramEnd,
 	})
@@ -90,11 +90,19 @@ func main() {
 	fmt.Println("Sharding Database")
 	fmt.Printf("Querying %d row in %vms\n", detailOrdersCount, shardingDatabaseRuntime)
 
+	config.ShardingDatabase.IsUsingSharding = false
+	svc, err = service.New(
+		repository,
+		config,
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	shardOrders = nil
 	startProcess = time.Now()
 
-	ctx := context.WithValue(context.Background(), "isUsingSharding", false)
-	shardOrders, err = service.Order.FindOrder(ctx, params.FindOrderService{
+	shardOrders, err = svc.Order.FindOrder(context.Background(), params.FindOrderService{
 		StartDate: paramStart,
 		EndDate:   paramEnd,
 	})

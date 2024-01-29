@@ -18,8 +18,10 @@ type Repository interface {
 	DeleteOrderDetails(ctx context.Context, tx *sqlx.Tx) error
 	FindAllOnShardDB(ctx context.Context, param params.ShardTimeSeriesWhereQuery) ([]model.Order, error)
 	FindOrderDetailsOnShardDB(ctx context.Context, param params.FindOrderDetailsOnShardRepo) ([]model.OrderDetail, error)
+	FindAllOrderAndDetailsOnShardDB(ctx context.Context, param params.ShardTimeSeriesWhereQuery) ([]model.OrderWithOrderDetails, error)
 	FindAllOnLongTermDB(ctx context.Context, param params.LongTermWhereQuery) ([]model.Order, error)
 	FindOrderDetailsOnLongTermDB(ctx context.Context, param params.FindOrderDetailsOnLongTermRepo) ([]model.OrderDetail, error)
+	FindAllOrderAndDetailsOnLongTermDB(ctx context.Context, param params.LongTermWhereQuery) ([]model.OrderWithOrderDetails, error)
 }
 
 type Config struct {

@@ -79,8 +79,10 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 		return errors.Wrap(err, constant.SkipErrorParameter)
 	}
 
-	iteration := 1
+	iteration := 100
 	for i := 0; i < iteration; i++ {
+		log.Info().Msgf("Iteration %d", i+1)
+
 		orders, detailOrders, err := loadOrder("./dataset/fact_table.csv", stores, storeCashier, customers, payments, items, config, decimal.NewFromFloat(afnUSDRate))
 		if err != nil {
 			return errors.Wrap(err, constant.SkipErrorParameter)
