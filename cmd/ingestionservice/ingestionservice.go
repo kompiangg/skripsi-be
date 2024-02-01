@@ -1,40 +1,52 @@
 package ingestionservice
 
 import (
-	"fmt"
+	"context"
 	"skripsi-be/config"
+	"skripsi-be/pkg/http"
 	"skripsi-be/service"
 
+	"skripsi-be/cmd/ingestionservice/handler"
 	inmiddleware "skripsi-be/cmd/middleware"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog/log"
 )
 
 func Init(
 	service service.Service,
-	kafkaConfig config.Kafka,
+	config config.IngestionService,
 	mw inmiddleware.Middleware,
 ) error {
-	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": kafkaConfig.Server,
-		"client.id":         "ingestionservice",
-		"acks":              "all",
+	e := echo.New()
+	e.Use(middleware.CORSWithConfig(
+		middleware.CORSConfig{
+			AllowOrigins: config.WhiteListAllowOrigin,
+		},
+	))
+
+	handler.Init(e, service, mw)
+
+	log.Info().Msgf("Starting Auth Service HTTP server on %s:%d", config.Host, config.Port)
+	err := http.Start(http.HTTPServerConfig{
+		Echo: e,
+		Port: config.Port,
+		Host: config.Host,
 	})
 	if err != nil {
 		return err
 	}
 
-	defer producer.Close()
+	log.Info().Msg("Starting graceful shutdown HTTP Server...")
 
-	for {
-		var word string
-		fmt.Scanf("%s", &word)
-
-		producer.Produce(&kafka.Message{
-			TopicPartition: kafka.TopicPartition{Topic: &kafkaConfig.Topic, Partition: kafka.PartitionAny},
-			Value:          []byte(word),
-		}, nil)
+	err = e.Shutdown(context.Background())
+	if err != nil {
+		log.Error().Err(err).Msg("Error while shutting down HTTP server")
+		return err
 	}
+
+	log.Info().Msg("HTTP Server shutdown gracefully, RIP 🙏")
 
 	return nil
 }

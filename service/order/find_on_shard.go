@@ -3,7 +3,7 @@ package order
 import (
 	"context"
 	"skripsi-be/pkg/errors"
-	"skripsi-be/type/constant"
+	"skripsi-be/type/model"
 	"skripsi-be/type/params"
 	"skripsi-be/type/result"
 	"time"
@@ -13,35 +13,45 @@ import (
 )
 
 func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (allOrders []result.Order, err error) {
-	isUsingSharding := true
-
 	param.StartDate = time.Date(param.StartDate.Year(), param.StartDate.Month(), param.StartDate.Day(), 0, 0, 0, 0, param.StartDate.Location())
 	param.EndDate = time.Date(param.EndDate.Year(), param.EndDate.Month(), param.EndDate.Day(), 23, 59, 59, 0, param.EndDate.Location())
 
 	shardQuery, err := s.getShardWhereQuery(param.StartDate, param.EndDate)
-	if errors.Is(err, constant.ErrOutOfShardRange) {
-		isUsingSharding = false
-		err = nil
-	} else if err != nil {
+	if err != nil {
 		return nil, errors.Wrap(err)
 	}
 
-	if s.config.IsUsingSharding && isUsingSharding {
+	if s.config.IsUsingSharding {
 		errorChan := make(chan error, len(shardQuery))
+		defer close(errorChan)
+
 		shardOrder := make([][]result.Order, len(shardQuery))
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
-		for _, shardParam := range shardQuery {
-			go func(shardParam result.ShardTimeSeriesWhereQuery) {
-				order, err := s.orderRepo.FindAllOrderAndDetailsOnShardDB(ctx, params.ShardTimeSeriesWhereQuery{
-					ShardIndex: shardParam.ShardIndex,
-					StartDate:  null.TimeFrom(shardParam.StartDate),
-					EndDate:    null.TimeFrom(shardParam.EndDate),
-				})
-				if err != nil {
-					errorChan <- err
-					return
+		for idx, shardParam := range shardQuery {
+			go func(idx int, shardParam result.ShardTimeSeriesWhereQuery) {
+				var order []model.OrderWithOrderDetails
+
+				if shardParam.ShardIndex == len(s.config.Shards) {
+					order, err = s.orderRepo.FindAllOrderAndDetailsOnLongTermDB(ctx, params.LongTermWhereQuery{
+						StartDate: null.TimeFrom(shardParam.StartDate),
+						EndDate:   null.TimeFrom(shardParam.EndDate),
+					})
+					if err != nil {
+						errorChan <- err
+						return
+					}
+				} else {
+					order, err = s.orderRepo.FindAllOrderAndDetailsOnShardDB(ctx, params.ShardTimeSeriesWhereQuery{
+						ShardIndex: shardParam.ShardIndex,
+						StartDate:  null.TimeFrom(shardParam.StartDate),
+						EndDate:    null.TimeFrom(shardParam.EndDate),
+					})
+					if err != nil {
+						errorChan <- err
+						return
+					}
 				}
 
 				orders := make([]result.Order, 0)
@@ -87,9 +97,9 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 					}
 				}
 
-				shardOrder[shardParam.ShardIndex] = orders
+				shardOrder[idx] = orders
 				errorChan <- nil
-			}(shardParam)
+			}(idx, shardParam)
 		}
 
 		notErrCount := 0
@@ -102,8 +112,6 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 
 			notErrCount++
 		}
-
-		close(errorChan)
 
 		for _, orders := range shardOrder {
 			allOrders = append(allOrders, orders...)

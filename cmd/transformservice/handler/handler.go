@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"skripsi-be/cmd/longtermloadservice/handler/loadorder"
+	"skripsi-be/cmd/transformservice/handler/transformorder"
 	"skripsi-be/config"
 	"skripsi-be/service"
 
@@ -13,17 +13,17 @@ func Init(
 	consumer *kafka.Consumer,
 	service service.Service,
 ) error {
-	err := consumer.Subscribe(kafkaConfig.Topic.LoadOrder, nil)
+	err := consumer.Subscribe(kafkaConfig.Topic.TransformOrder, nil)
 	if err != nil {
 		return err
 	}
 
-	orderHandler := loadorder.New()
+	transformHandler := transformorder.New()
 
 	for {
 		msg, err := consumer.ReadMessage(-1)
 		if err == nil {
-			err := orderHandler.HandleLoadOrderEvent(msg)
+			err := transformHandler.HandleTransformOrderEvent(msg)
 			if err != nil {
 				continue
 			}

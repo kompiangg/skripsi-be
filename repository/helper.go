@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"math"
 	"skripsi-be/config"
 	"skripsi-be/type/constant"
 	"skripsi-be/type/result"
@@ -55,6 +56,10 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 		}
 	}
 
+	subtractedShard = append(subtractedShard, config.Shard{
+		DataRetention: math.MaxInt64,
+	})
+
 	return func(startDate time.Time, endDate time.Time) ([]result.ShardTimeSeriesWhereQuery, error) {
 		startDate = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())
 		endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 0, 0, 0, 0, endDate.Location())
@@ -68,11 +73,11 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 
 		startIdx, endIdx := -1, -1 // -1 means not found
 
-		if diffStartInDay > subtractedShard[len(subtractedShard)-1].DataRetention {
+		if diffEndInDay < subtractedShard[0].DataRetention {
 			return nil, constant.ErrOutOfShardRange
 		}
 
-		if diffEndInDay < subtractedShard[0].DataRetention {
+		if diffEndInDay > subtractedShard[len(subtractedShard)-2].DataRetention {
 			return nil, constant.ErrOutOfShardRange
 		}
 
@@ -121,10 +126,13 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 			}
 
 			whereQueries = append(whereQueries, result.ShardTimeSeriesWhereQuery{
-				StartDate:  time.Date(startDateQuery.Year(), startDateQuery.Month(), startDateQuery.Day(), 0, 0, 0, 0, startDateQuery.Location()),
-				EndDate:    time.Date(endDateQuery.Year(), endDateQuery.Month(), endDateQuery.Day(), 23, 59, 59, 0, endDateQuery.Location()),
-				ShardIndex: i,
+				StartDate: time.Date(startDateQuery.Year(), startDateQuery.Month(), startDateQuery.Day(), 0, 0, 0, 0, startDateQuery.Location()),
+				EndDate:   time.Date(endDateQuery.Year(), endDateQuery.Month(), endDateQuery.Day(), 23, 59, 59, 0, endDateQuery.Location()),
 			})
+		}
+
+		for i := range choosedDB {
+			whereQueries[i].ShardIndex = endIdx + i
 		}
 
 		return whereQueries, nil

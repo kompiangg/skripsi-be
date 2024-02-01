@@ -6,10 +6,12 @@ import (
 	"skripsi-be/repository/account"
 	"skripsi-be/repository/admin"
 	"skripsi-be/repository/order"
+	"skripsi-be/repository/publisher"
 	"skripsi-be/repository/shard"
 	"skripsi-be/type/result"
 	"time"
 
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 )
@@ -19,6 +21,7 @@ type Repository struct {
 	Order                   order.Repository
 	Account                 account.Repository
 	Admin                   admin.Repository
+	Publisher               publisher.Repository
 	LongTermDBTx            func(ctx context.Context) (*sqlx.Tx, error)
 	ShardDBTx               func(ctx context.Context, dbIndex int) (*sqlx.Tx, error)
 	GetShardIndexByDateTime func(date time.Time) (int, error)
@@ -31,6 +34,7 @@ func New(
 	generalDatabase *sqlx.DB,
 	shardingDatabase []*sqlx.DB,
 	redis *redis.Client,
+	kafkaPublisher *kafka.Producer,
 ) (Repository, error) {
 	sharding := shard.New(
 		shard.Config{
@@ -57,11 +61,20 @@ func New(
 		generalDatabase,
 	)
 
+	publisher := publisher.New(
+		publisher.Config{
+			LoadOrderTopic:      config.Kafka.Topic.LoadOrder,
+			TransformOrderTopic: config.Kafka.Topic.TransformOrder,
+		},
+		kafkaPublisher,
+	)
+
 	return Repository{
 		Sharding:                sharding,
 		Order:                   order,
 		Account:                 account,
 		Admin:                   admin,
+		Publisher:               publisher,
 		LongTermDBTx:            beginLongTermDBTx(longTermDatabase),
 		ShardDBTx:               beginShardDBTx(shardingDatabase),
 		GetShardIndexByDateTime: getShardIndexByDateTime(config.ShardingDatabase.Shards, config.Date),

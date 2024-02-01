@@ -6,6 +6,7 @@ import (
 	pkgSQLX "skripsi-be/pkg/db/sqlx"
 	pkgRedis "skripsi-be/pkg/redis"
 
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 )
@@ -15,6 +16,7 @@ type Connection struct {
 	LongTermDatabase *sqlx.DB
 	ShardingDatabase []*sqlx.DB
 	Redis            *redis.Client
+	KafkaProducer    *kafka.Producer
 }
 
 func New(config config.Config) (Connection, error) {
@@ -48,11 +50,20 @@ func New(config config.Config) (Connection, error) {
 		shardingDatabase = append(shardingDatabase, shardingDB)
 	}
 
+	kafkaProducer, err := kafka.NewProducer(&kafka.ConfigMap{
+		"bootstrap.servers": config.Kafka.Server,
+		"acks":              "all",
+	})
+	if err != nil {
+		return Connection{}, err
+	}
+
 	return Connection{
 		Redis:            redis,
 		LongTermDatabase: longTermDatabase,
 		ShardingDatabase: shardingDatabase,
 		GeneralDatabase:  generalDatabase,
+		KafkaProducer:    kafkaProducer,
 	}, nil
 }
 
@@ -78,6 +89,9 @@ func (c *Connection) Close() error {
 			return err
 		}
 	}
+
+	c.KafkaProducer.Flush(10 * 1000)
+	c.KafkaProducer.Close()
 
 	return nil
 }

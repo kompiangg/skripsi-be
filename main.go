@@ -52,6 +52,7 @@ func main() {
 		connections.GeneralDatabase,
 		connections.ShardingDatabase,
 		connections.Redis,
+		connections.KafkaProducer,
 	)
 	if err != nil {
 		panic(err)
@@ -90,7 +91,7 @@ func main() {
 	} else if *serviceName == "ingestionservice" {
 		err = ingestionservice.Init(
 			service,
-			config.Kafka,
+			config.Microservice.IngestionService,
 			mw,
 		)
 		if err != nil {

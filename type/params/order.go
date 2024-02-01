@@ -13,15 +13,19 @@ import (
 )
 
 type ServiceInsertOrderToShard struct {
-	ID           uuid.UUID           `json:"id"`
-	CashierID    uuid.UUID           `json:"cashier_id"`
-	StoreID      string              `json:"store_id"`
-	PaymentID    string              `json:"payment_id"`
-	CustomerID   string              `json:"customer_id"`
-	Currency     string              `json:"currency"`
-	UsdRate      decimal.Decimal     `json:"usd_rate"`
-	CreatedAt    time.Time           `json:"created_at"`
-	OrderDetails []OrderDetailsShard `json:"order_details"`
+	ID              uuid.UUID           `json:"id"`
+	CashierID       uuid.UUID           `json:"cashier_id"`
+	StoreID         string              `json:"store_id"`
+	PaymentID       string              `json:"payment_id"`
+	CustomerID      string              `json:"customer_id"`
+	TotalQuantity   int64               `json:"total_quantity"`
+	TotalUnit       int64               `json:"total_unit"`
+	Currency        string              `json:"currency"`
+	TotalPrice      decimal.Decimal     `json:"total_price"`
+	TotalPriceInUSD decimal.Decimal     `json:"total_price_in_usd"`
+	UsdRate         decimal.Decimal     `json:"usd_rate"`
+	CreatedAt       time.Time           `json:"created_at"`
+	OrderDetails    []OrderDetailsShard `json:"order_details"`
 }
 
 type OrderDetailsShard struct {
@@ -32,7 +36,7 @@ type OrderDetailsShard struct {
 	Price    decimal.Decimal `json:"price"`
 }
 
-func (s ServiceInsertOrderToShard) ToOrderModel() model.Order {
+func (s ServiceInsertOrderToShard) ToOrderModelInSeeder() model.Order {
 	totalQuantity := null.Int64From(0)
 	totalUnit := null.Int64From(0)
 	totalPrice := decimal.NewFromInt(0)
@@ -52,6 +56,24 @@ func (s ServiceInsertOrderToShard) ToOrderModel() model.Order {
 		TotalUnit:       totalUnit,
 		TotalPrice:      totalPrice,
 		TotalPriceInUSD: totalPrice.Mul(s.UsdRate),
+		CustomerID:      null.StringFrom(s.CustomerID),
+		Currency:        null.StringFrom(s.Currency),
+		UsdRate:         s.UsdRate,
+		CreatedAt:       s.CreatedAt,
+		OrderDetails:    s.ToOrderDetailModel(),
+	}
+}
+
+func (s ServiceInsertOrderToShard) ToOrderModel() model.Order {
+	return model.Order{
+		ID:              s.ID,
+		CashierID:       s.CashierID,
+		StoreID:         null.StringFrom(s.StoreID),
+		PaymentID:       null.StringFrom(s.PaymentID),
+		TotalQuantity:   null.NewInt64(s.TotalQuantity, true),
+		TotalUnit:       null.Int64From(s.TotalUnit),
+		TotalPrice:      s.TotalPrice,
+		TotalPriceInUSD: s.TotalPriceInUSD,
 		CustomerID:      null.StringFrom(s.CustomerID),
 		Currency:        null.StringFrom(s.Currency),
 		UsdRate:         s.UsdRate,
@@ -101,15 +123,19 @@ func (s ServiceInsertOrdersToShardParam) Validate(ctx context.Context) error {
 }
 
 type ServiceInsertOrderToLongTermParam struct {
-	ID           uuid.UUID       `json:"id"`
-	CashierID    uuid.UUID       `json:"cashier_id"`
-	StoreID      string          `json:"store_id"`
-	PaymentID    string          `json:"payment_id"`
-	CustomerID   string          `json:"customer_id"`
-	Currency     string          `json:"currency"`
-	UsdRate      decimal.Decimal `json:"usd_rate"`
-	CreatedAt    time.Time       `json:"created_at"`
-	OrderDetails []OrderDetailsLongTerm
+	ID              uuid.UUID              `json:"id"`
+	CashierID       uuid.UUID              `json:"cashier_id"`
+	StoreID         string                 `json:"store_id"`
+	PaymentID       string                 `json:"payment_id"`
+	CustomerID      string                 `json:"customer_id"`
+	TotalQuantity   int64                  `json:"total_quantity"`
+	TotalUnit       int64                  `json:"total_unit"`
+	Currency        string                 `json:"currency"`
+	TotalPrice      decimal.Decimal        `json:"total_price"`
+	TotalPriceInUSD decimal.Decimal        `json:"total_price_in_usd"`
+	UsdRate         decimal.Decimal        `json:"usd_rate"`
+	CreatedAt       time.Time              `json:"created_at"`
+	OrderDetails    []OrderDetailsLongTerm `json:"order_details"`
 }
 
 type OrderDetailsLongTerm struct {
@@ -120,7 +146,7 @@ type OrderDetailsLongTerm struct {
 	Price    decimal.Decimal `json:"price"`
 }
 
-func (s ServiceInsertOrderToLongTermParam) ToOrderModel() model.Order {
+func (s ServiceInsertOrderToLongTermParam) ToOrderModelInSeeder() model.Order {
 	totalQuantity := null.Int64From(0)
 	totalUnit := null.Int64From(0)
 	totalPrice := decimal.NewFromInt(0)
@@ -142,6 +168,24 @@ func (s ServiceInsertOrderToLongTermParam) ToOrderModel() model.Order {
 		TotalUnit:       totalUnit,
 		TotalPrice:      totalPrice,
 		TotalPriceInUSD: totalPrice.Mul(s.UsdRate),
+		UsdRate:         s.UsdRate,
+		CreatedAt:       s.CreatedAt,
+		OrderDetails:    s.ToOrderDetailModel(),
+	}
+}
+
+func (s ServiceInsertOrderToLongTermParam) ToOrderModel() model.Order {
+	return model.Order{
+		ID:              s.ID,
+		CashierID:       s.CashierID,
+		StoreID:         null.StringFrom(s.StoreID),
+		PaymentID:       null.StringFrom(s.PaymentID),
+		CustomerID:      null.StringFrom(s.CustomerID),
+		Currency:        null.StringFrom(s.Currency),
+		TotalQuantity:   null.Int64From(s.TotalQuantity),
+		TotalUnit:       null.Int64From(s.TotalUnit),
+		TotalPrice:      s.TotalPrice,
+		TotalPriceInUSD: s.TotalPriceInUSD,
 		UsdRate:         s.UsdRate,
 		CreatedAt:       s.CreatedAt,
 		OrderDetails:    s.ToOrderDetailModel(),
@@ -190,4 +234,94 @@ func (s ServiceInsertOrdersToLongTermParam) Validate(ctx context.Context) error 
 type FindOrderService struct {
 	StartDate time.Time `json:"start_date"`
 	EndDate   time.Time `json:"end_date"`
+}
+
+type TransformOrderEventService struct {
+	ID           uuid.UUID                        `json:"id"`
+	CashierID    uuid.UUID                        `json:"cashier_id"`
+	StoreID      string                           `json:"store_id"`
+	PaymentID    string                           `json:"payment_id"`
+	CustomerID   string                           `json:"customer_id"`
+	Currency     string                           `json:"currency"`
+	CreatedAt    time.Time                        `json:"created_at"`
+	OrderDetails []PublishOrderDetailEventService `json:"order_details"`
+}
+
+type PublishOrderDetailEventService struct {
+	ItemID   string          `json:"item_id"`
+	Quantity int64           `json:"quantity"`
+	Unit     string          `json:"unit"`
+	Price    decimal.Decimal `json:"price"`
+}
+
+func (s TransformOrderEventService) Validate() error {
+	err := validation.ValidateStruct(&s,
+		validation.Field(&s.ID, validation.Required, validation.NotNil, is.UUIDv4),
+		validation.Field(&s.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
+		validation.Field(&s.StoreID, validation.Required, validation.NotNil),
+		validation.Field(&s.PaymentID, validation.Required, validation.NotNil),
+		validation.Field(&s.CustomerID, validation.Required, validation.NotNil),
+		validation.Field(&s.Currency, validation.Required, validation.NotNil),
+		validation.Field(&s.CreatedAt, validation.Required, validation.NotNil),
+		validation.Field(&s.OrderDetails, validation.Required, validation.NotNil, validation.Length(1, 0)),
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, orderDetail := range s.OrderDetails {
+		err := validation.ValidateStruct(&orderDetail,
+			validation.Field(&orderDetail.ItemID, validation.Required, validation.NotNil),
+			validation.Field(&orderDetail.Quantity, validation.Required, validation.NotNil, validation.NotIn(0)),
+			validation.Field(&orderDetail.Unit, validation.Required, validation.NotNil, validation.NotIn(0)),
+			validation.Field(&orderDetail.Price, validation.Required, validation.NotNil, validation.NotIn(0)),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s TransformOrderEventService) ToPublishOrderEventRepository() PublishTransformOrderEventRepository {
+	res := PublishTransformOrderEventRepository{
+		ID:           s.ID,
+		CashierID:    s.CashierID,
+		StoreID:      s.StoreID,
+		PaymentID:    s.PaymentID,
+		CustomerID:   s.CustomerID,
+		Currency:     s.Currency,
+		CreatedAt:    s.CreatedAt,
+		OrderDetails: []PublishOrderDetailEventService{},
+	}
+
+	for _, orderDetail := range s.OrderDetails {
+		res.OrderDetails = append(res.OrderDetails, PublishOrderDetailEventService{
+			ItemID:   orderDetail.ItemID,
+			Quantity: orderDetail.Quantity,
+			Unit:     orderDetail.Unit,
+			Price:    orderDetail.Price,
+		})
+	}
+
+	return res
+}
+
+type PublishTransformOrderEventRepository struct {
+	ID           uuid.UUID                        `json:"id"`
+	CashierID    uuid.UUID                        `json:"cashier_id"`
+	StoreID      string                           `json:"store_id"`
+	PaymentID    string                           `json:"payment_id"`
+	CustomerID   string                           `json:"customer_id"`
+	Currency     string                           `json:"currency"`
+	CreatedAt    time.Time                        `json:"created_at"`
+	OrderDetails []PublishOrderDetailEventService `json:"order_details"`
+}
+
+type PublishTransformOrderDetailEventRepository struct {
+	ItemID   string          `json:"item_id"`
+	Quantity int64           `json:"quantity"`
+	Unit     string          `json:"unit"`
+	Price    decimal.Decimal `json:"price"`
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"skripsi-be/config"
 	"skripsi-be/repository/order"
+	"skripsi-be/repository/publisher"
 	"skripsi-be/repository/shard"
 	"skripsi-be/type/params"
 	"skripsi-be/type/result"
@@ -16,6 +17,8 @@ type Service interface {
 	MoveDataThroughShard(ctx context.Context) error
 	InsertToShard(ctx context.Context, param params.ServiceInsertOrdersToShardParam) error
 	InsertToLongTerm(ctx context.Context, param params.ServiceInsertOrdersToLongTermParam) error
+	InsertToShardSeeder(ctx context.Context, param params.ServiceInsertOrdersToShardParam) error
+	InsertToLongTermSeeder(ctx context.Context, param params.ServiceInsertOrdersToLongTermParam) error
 	FindOrder(ctx context.Context, param params.FindOrderService) (allOrders []result.Order, err error)
 }
 
@@ -26,9 +29,10 @@ type Config struct {
 }
 
 type service struct {
-	config    Config
-	shardRepo shard.Repository
-	orderRepo order.Repository
+	config        Config
+	shardRepo     shard.Repository
+	orderRepo     order.Repository
+	publisherRepo publisher.Repository
 
 	beginShardTx            func(ctx context.Context, dbIdx int) (*sqlx.Tx, error)
 	beginLongTermTx         func(ctx context.Context) (*sqlx.Tx, error)
@@ -40,6 +44,7 @@ func New(
 	config Config,
 	shardRepo shard.Repository,
 	orderRepo order.Repository,
+	publisherRepo publisher.Repository,
 	beginShardTx func(ctx context.Context, dbIdx int) (*sqlx.Tx, error),
 	beginLongTermTx func(ctx context.Context) (*sqlx.Tx, error),
 	getShardIndexByDateTime func(date time.Time) (int, error),
@@ -49,6 +54,7 @@ func New(
 		config:                  config,
 		shardRepo:               shardRepo,
 		orderRepo:               orderRepo,
+		publisherRepo:           publisherRepo,
 		beginShardTx:            beginShardTx,
 		beginLongTermTx:         beginLongTermTx,
 		getShardIndexByDateTime: getShardIndexByDateTime,

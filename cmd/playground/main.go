@@ -45,6 +45,7 @@ func main() {
 		connections.GeneralDatabase,
 		connections.ShardingDatabase,
 		connections.Redis,
+		connections.KafkaProducer,
 	)
 	if err != nil {
 		panic(err)
@@ -60,12 +61,12 @@ func main() {
 
 	_ = task.New(svc)
 
-	paramStart, err := time.Parse("2006-01-02", "2023-11-20")
+	paramStart, err := time.Parse("2006-01-02", "2023-10-01")
 	if err != nil {
 		panic(err)
 	}
 
-	paramEnd, err := time.Parse("2006-01-02", "2023-12-31")
+	paramEnd, err := time.Parse("2006-01-02", "2023-11-01")
 	if err != nil {
 		panic(err)
 	}

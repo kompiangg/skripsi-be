@@ -1,11 +1,9 @@
-package shardingloadservice
+package transformservice
 
 import (
+	"skripsi-be/cmd/transformservice/handler"
 	"skripsi-be/config"
 	"skripsi-be/service"
-
-	inmiddleware "skripsi-be/cmd/middleware"
-	"skripsi-be/cmd/shardingloadservice/handler"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -13,7 +11,6 @@ import (
 func Init(
 	service service.Service,
 	kafkaConfig config.Kafka,
-	mw inmiddleware.Middleware,
 ) error {
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": kafkaConfig.Server,

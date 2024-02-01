@@ -141,12 +141,12 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 			})
 		}
 
-		err = service.Order.InsertToLongTerm(ctx, longTermParams)
+		err = service.Order.InsertToLongTermSeeder(ctx, longTermParams)
 		if err != nil {
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}
 
-		err = service.Order.InsertToShard(ctx, shardParams)
+		err = service.Order.InsertToShardSeeder(ctx, shardParams)
 		if err != nil {
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}

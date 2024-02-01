@@ -24,6 +24,7 @@ func New(
 		},
 		repository.Sharding,
 		repository.Order,
+		repository.Publisher,
 		repository.ShardDBTx,
 		repository.LongTermDBTx,
 		repository.GetShardIndexByDateTime,
