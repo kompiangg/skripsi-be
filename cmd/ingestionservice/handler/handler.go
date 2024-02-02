@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"skripsi-be/cmd/ingestionservice/handler/order"
 	"skripsi-be/cmd/middleware"
 	"skripsi-be/service"
 
@@ -12,4 +13,5 @@ func Init(
 	service service.Service,
 	middleware middleware.Middleware,
 ) {
+	order.Init(echo, service.Order, middleware)
 }

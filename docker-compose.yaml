@@ -102,6 +102,11 @@ services:
     networks:
       skripsi-network:
         ipv4_address: "172.100.0.200"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   kafka2:
     image: confluentinc/cp-kafka:latest
     ports:
@@ -117,7 +122,11 @@ services:
     networks:
       skripsi-network:
         ipv4_address: "172.100.0.100"
-
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   kafdrop:
     image: obsidiandynamics/kafdrop
     ports:
@@ -126,8 +135,10 @@ services:
       - KAFKA_BROKERCONNECT=kafka1:9092
       - JVM_OPTS=-Xms32M -Xmx64M
     depends_on:
-      - kafka1
-      - kafka2
+      kafka1:
+        condition: service_healthy
+      kafka2:
+        condition: service_healthy
     networks:
       - skripsi-network
 

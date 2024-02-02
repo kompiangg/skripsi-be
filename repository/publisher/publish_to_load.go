@@ -9,7 +9,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-func (r repository) PublishLoadOrderEvent(ctx context.Context, param []params.PublishTransformOrderEventRepository) error {
+func (r repository) PublishLoadOrderEvent(ctx context.Context, param []params.RepositoryPublishLoadOrderEvent) error {
 	jsonParam, err := json.Marshal(param)
 	if err != nil {
 		return errors.Wrap(err)

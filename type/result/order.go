@@ -2,6 +2,7 @@ package result
 
 import (
 	"skripsi-be/type/model"
+	"skripsi-be/type/params"
 	"time"
 
 	"github.com/google/uuid"
@@ -57,6 +58,44 @@ func (o *Order) FromModel(orderModel model.Order) {
 			Quantity: orderModel.OrderDetails[idx].Quantity,
 			Unit:     orderModel.OrderDetails[idx].Unit,
 			Price:    orderModel.OrderDetails[idx].Price,
+		}
+	}
+}
+
+type ServiceIngestOrder struct {
+	ID           uuid.UUID                  `json:"id"`
+	CashierID    uuid.UUID                  `json:"cashier_id"`
+	StoreID      string                     `json:"store_id"`
+	PaymentID    string                     `json:"payment_id"`
+	CustomerID   string                     `json:"customer_id"`
+	Currency     string                     `json:"currency"`
+	CreatedAt    time.Time                  `json:"created_at"`
+	OrderDetails []ServiceIngestOrderDetail `json:"order_details"`
+}
+
+type ServiceIngestOrderDetail struct {
+	ItemID   string          `json:"item_id"`
+	Quantity int64           `json:"quantity"`
+	Unit     string          `json:"unit"`
+	Price    decimal.Decimal `json:"price"`
+}
+
+func (s *ServiceIngestOrder) FromParamServiceIngestionOrder(param params.ServiceIngestionOrder, uuid uuid.UUID) {
+	s.ID = uuid
+	s.CashierID = param.CashierID
+	s.StoreID = param.StoreID
+	s.PaymentID = param.PaymentID
+	s.CustomerID = param.CustomerID
+	s.Currency = param.Currency
+	s.CreatedAt = param.CreatedAt
+	s.OrderDetails = make([]ServiceIngestOrderDetail, len(param.OrderDetails))
+
+	for idx := range s.OrderDetails {
+		s.OrderDetails[idx] = ServiceIngestOrderDetail{
+			ItemID:   param.OrderDetails[idx].ItemID,
+			Quantity: param.OrderDetails[idx].Quantity,
+			Unit:     param.OrderDetails[idx].Unit,
+			Price:    param.OrderDetails[idx].Price,
 		}
 	}
 }

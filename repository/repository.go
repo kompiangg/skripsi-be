@@ -5,6 +5,7 @@ import (
 	"skripsi-be/config"
 	"skripsi-be/repository/account"
 	"skripsi-be/repository/admin"
+	"skripsi-be/repository/currency"
 	"skripsi-be/repository/order"
 	"skripsi-be/repository/publisher"
 	"skripsi-be/repository/shard"
@@ -22,6 +23,7 @@ type Repository struct {
 	Account                 account.Repository
 	Admin                   admin.Repository
 	Publisher               publisher.Repository
+	Currency                currency.Repository
 	LongTermDBTx            func(ctx context.Context) (*sqlx.Tx, error)
 	ShardDBTx               func(ctx context.Context, dbIndex int) (*sqlx.Tx, error)
 	GetShardIndexByDateTime func(date time.Time) (int, error)
@@ -69,12 +71,19 @@ func New(
 		kafkaPublisher,
 	)
 
+	currency := currency.New(
+		currency.Config{},
+		redis,
+	)
+
 	return Repository{
-		Sharding:                sharding,
-		Order:                   order,
-		Account:                 account,
-		Admin:                   admin,
-		Publisher:               publisher,
+		Sharding:  sharding,
+		Order:     order,
+		Account:   account,
+		Admin:     admin,
+		Publisher: publisher,
+		Currency:  currency,
+
 		LongTermDBTx:            beginLongTermDBTx(longTermDatabase),
 		ShardDBTx:               beginShardDBTx(shardingDatabase),
 		GetShardIndexByDateTime: getShardIndexByDateTime(config.ShardingDatabase.Shards, config.Date),

@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func GetJWTClaimsFromContext(c echo.Context, adminCashierContextKey string) (jwt.MapClaims, error) {
-	token, ok := c.Get(adminCashierContextKey).(*jwt.Token)
+func GetJWTClaimsFromContext(c echo.Context, ctxKey string) (jwt.MapClaims, error) {
+	token, ok := c.Get(ctxKey).(*jwt.Token)
 	if !ok {
 		return nil, errors.New("cannot get jwt token from context")
 	}

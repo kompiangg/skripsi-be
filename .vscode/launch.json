@@ -14,7 +14,7 @@
       ]
     },
     {
-      "name": "Debug Order Service",
+      "name": "Debug Ingestion Service",
       "type": "go",
       "request": "launch",
       "mode": "debug",
@@ -22,7 +22,31 @@
       "cwd": "${workspaceFolder}",
       "env": {},
       "args": [
-        "-service=orderservice"
+        "-service=ingestionservice"
+      ]
+    },
+    {
+      "name": "Debug Sharding Load Service",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "./main.go",
+      "cwd": "${workspaceFolder}",
+      "env": {},
+      "args": [
+        "-service=shardingloadservice"
+      ]
+    },
+    {
+      "name": "Debug Transform Service",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "./main.go",
+      "cwd": "${workspaceFolder}",
+      "env": {},
+      "args": [
+        "-service=transformservice"
       ]
     },
     {

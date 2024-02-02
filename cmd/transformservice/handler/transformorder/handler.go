@@ -1,7 +1,15 @@
 package transformorder
 
-type handler struct{}
+import "skripsi-be/service/order"
 
-func New() handler {
-	return handler{}
+type handler struct {
+	orderService order.Service
+}
+
+func New(
+	orderService order.Service,
+) handler {
+	return handler{
+		orderService: orderService,
+	}
 }

@@ -7,8 +7,9 @@ type Kafka struct {
 }
 
 type KafkaGroup struct {
-	Shard    string `yaml:"Shard"`
-	LongTerm string `yaml:"LongTerm"`
+	Shard     string `yaml:"Shard"`
+	LongTerm  string `yaml:"LongTerm"`
+	Transform string `yaml:"Transform"`
 }
 
 type KafkaTopic struct {

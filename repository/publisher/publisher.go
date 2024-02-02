@@ -8,7 +8,8 @@ import (
 )
 
 type Repository interface {
-	PublishLoadOrderEvent(ctx context.Context, param []params.PublishTransformOrderEventRepository) error
+	PublishLoadOrderEvent(ctx context.Context, param []params.RepositoryPublishLoadOrderEvent) error
+	PublishTransformOrderEvent(ctx context.Context, param []params.RepositoryPublishTransformOrderEvent) error
 }
 
 type Config struct {

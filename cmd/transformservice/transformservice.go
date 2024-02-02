@@ -14,8 +14,8 @@ func Init(
 ) error {
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": kafkaConfig.Server,
-		"group.id":          kafkaConfig.Group.Shard,
-		"auto.offset.reset": "latest",
+		"group.id":          kafkaConfig.Group.Transform,
+		"auto.offset.reset": "earliest",
 	})
 	if err != nil {
 		return err

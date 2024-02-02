@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"skripsi-be/config"
+	"skripsi-be/repository/currency"
 	"skripsi-be/repository/order"
 	"skripsi-be/repository/publisher"
 	"skripsi-be/repository/shard"
@@ -20,6 +21,8 @@ type Service interface {
 	InsertToShardSeeder(ctx context.Context, param params.ServiceInsertOrdersToShardParam) error
 	InsertToLongTermSeeder(ctx context.Context, param params.ServiceInsertOrdersToLongTermParam) error
 	FindOrder(ctx context.Context, param params.FindOrderService) (allOrders []result.Order, err error)
+	IngestOrder(ctx context.Context, param []params.ServiceIngestionOrder) ([]result.ServiceIngestOrder, error)
+	TransformOrder(ctx context.Context, param []params.ServiceTransformOrder) error
 }
 
 type Config struct {
@@ -33,6 +36,7 @@ type service struct {
 	shardRepo     shard.Repository
 	orderRepo     order.Repository
 	publisherRepo publisher.Repository
+	currencyRepo  currency.Repository
 
 	beginShardTx            func(ctx context.Context, dbIdx int) (*sqlx.Tx, error)
 	beginLongTermTx         func(ctx context.Context) (*sqlx.Tx, error)
@@ -45,6 +49,7 @@ func New(
 	shardRepo shard.Repository,
 	orderRepo order.Repository,
 	publisherRepo publisher.Repository,
+	currencyRepo currency.Repository,
 	beginShardTx func(ctx context.Context, dbIdx int) (*sqlx.Tx, error),
 	beginLongTermTx func(ctx context.Context) (*sqlx.Tx, error),
 	getShardIndexByDateTime func(date time.Time) (int, error),
@@ -55,6 +60,7 @@ func New(
 		shardRepo:               shardRepo,
 		orderRepo:               orderRepo,
 		publisherRepo:           publisherRepo,
+		currencyRepo:            currencyRepo,
 		beginShardTx:            beginShardTx,
 		beginLongTermTx:         beginLongTermTx,
 		getShardIndexByDateTime: getShardIndexByDateTime,

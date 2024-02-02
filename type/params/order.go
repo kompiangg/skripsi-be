@@ -236,25 +236,109 @@ type FindOrderService struct {
 	EndDate   time.Time `json:"end_date"`
 }
 
-type TransformOrderEventService struct {
-	ID           uuid.UUID                        `json:"id"`
-	CashierID    uuid.UUID                        `json:"cashier_id"`
-	StoreID      string                           `json:"store_id"`
-	PaymentID    string                           `json:"payment_id"`
-	CustomerID   string                           `json:"customer_id"`
-	Currency     string                           `json:"currency"`
-	CreatedAt    time.Time                        `json:"created_at"`
-	OrderDetails []PublishOrderDetailEventService `json:"order_details"`
+type ServiceIngestionOrder struct {
+	StoreID      string                        `json:"store_id"`
+	PaymentID    string                        `json:"payment_id"`
+	CustomerID   string                        `json:"customer_id"`
+	Currency     string                        `json:"currency"`
+	CreatedAt    time.Time                     `json:"created_at"`
+	OrderDetails []ServiceIngestionOrderDetail `json:"order_details"`
+
+	CashierID uuid.UUID `json:"-"`
 }
 
-type PublishOrderDetailEventService struct {
+type ServiceIngestionOrderDetail struct {
 	ItemID   string          `json:"item_id"`
 	Quantity int64           `json:"quantity"`
 	Unit     string          `json:"unit"`
 	Price    decimal.Decimal `json:"price"`
 }
 
-func (s TransformOrderEventService) Validate() error {
+func (s ServiceIngestionOrder) Validate() error {
+	err := validation.ValidateStruct(&s,
+		validation.Field(&s.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
+		validation.Field(&s.StoreID, validation.Required, validation.NotNil),
+		validation.Field(&s.PaymentID, validation.Required, validation.NotNil),
+		validation.Field(&s.CustomerID, validation.Required, validation.NotNil),
+		validation.Field(&s.Currency, validation.Required, validation.NotNil),
+		validation.Field(&s.CreatedAt, validation.Required, validation.NotNil),
+		validation.Field(&s.OrderDetails, validation.Required, validation.NotNil, validation.Length(1, 0)),
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, orderDetail := range s.OrderDetails {
+		err := validation.ValidateStruct(&orderDetail,
+			validation.Field(&orderDetail.ItemID, validation.Required, validation.NotNil),
+			validation.Field(&orderDetail.Quantity, validation.Required, validation.NotNil, validation.NotIn(0)),
+			validation.Field(&orderDetail.Unit, validation.Required, validation.NotNil, validation.NotIn(0)),
+			validation.Field(&orderDetail.Price, validation.Required, validation.NotNil, validation.NotIn(0)),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s ServiceIngestionOrder) ToRepositoryPublishTransformOrderEvent() RepositoryPublishTransformOrderEvent {
+	res := RepositoryPublishTransformOrderEvent{
+		ID:           uuid.New(),
+		CashierID:    s.CashierID,
+		StoreID:      s.StoreID,
+		PaymentID:    s.PaymentID,
+		CustomerID:   s.CustomerID,
+		Currency:     s.Currency,
+		CreatedAt:    s.CreatedAt,
+		OrderDetails: []RepositoryPublishTransformOrderDetailEvent{},
+	}
+
+	for _, orderDetail := range s.OrderDetails {
+		res.OrderDetails = append(res.OrderDetails, RepositoryPublishTransformOrderDetailEvent(orderDetail))
+	}
+
+	return res
+}
+
+type RepositoryPublishTransformOrderEvent struct {
+	ID           uuid.UUID                                    `json:"id"`
+	CashierID    uuid.UUID                                    `json:"cashier_id"`
+	StoreID      string                                       `json:"store_id"`
+	PaymentID    string                                       `json:"payment_id"`
+	CustomerID   string                                       `json:"customer_id"`
+	Currency     string                                       `json:"currency"`
+	CreatedAt    time.Time                                    `json:"created_at"`
+	OrderDetails []RepositoryPublishTransformOrderDetailEvent `json:"order_details"`
+}
+
+type RepositoryPublishTransformOrderDetailEvent struct {
+	ItemID   string          `json:"item_id"`
+	Quantity int64           `json:"quantity"`
+	Unit     string          `json:"unit"`
+	Price    decimal.Decimal `json:"price"`
+}
+
+type ServiceTransformOrder struct {
+	ID           uuid.UUID                     `json:"id"`
+	CashierID    uuid.UUID                     `json:"cashier_id"`
+	StoreID      string                        `json:"store_id"`
+	PaymentID    string                        `json:"payment_id"`
+	CustomerID   string                        `json:"customer_id"`
+	Currency     string                        `json:"currency"`
+	CreatedAt    time.Time                     `json:"created_at"`
+	OrderDetails []ServiceTransformOrderDetail `json:"order_details"`
+}
+
+type ServiceTransformOrderDetail struct {
+	ItemID   string          `json:"item_id"`
+	Quantity int64           `json:"quantity"`
+	Unit     string          `json:"unit"`
+	Price    decimal.Decimal `json:"price"`
+}
+
+func (s ServiceTransformOrder) Validate() error {
 	err := validation.ValidateStruct(&s,
 		validation.Field(&s.ID, validation.Required, validation.NotNil, is.UUIDv4),
 		validation.Field(&s.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
@@ -284,42 +368,68 @@ func (s TransformOrderEventService) Validate() error {
 	return nil
 }
 
-func (s TransformOrderEventService) ToPublishOrderEventRepository() PublishTransformOrderEventRepository {
-	res := PublishTransformOrderEventRepository{
-		ID:           s.ID,
-		CashierID:    s.CashierID,
-		StoreID:      s.StoreID,
-		PaymentID:    s.PaymentID,
-		CustomerID:   s.CustomerID,
-		Currency:     s.Currency,
-		CreatedAt:    s.CreatedAt,
-		OrderDetails: []PublishOrderDetailEventService{},
+func (s ServiceTransformOrder) TransformOrder(usdRate decimal.Decimal) RepositoryPublishLoadOrderEvent {
+	var totalQuantity int64
+	var totalUnit int64
+	totalPrice := decimal.NewFromInt(0)
+
+	for _, orderDetail := range s.OrderDetails {
+		totalQuantity += orderDetail.Quantity
+		totalUnit += orderDetail.Quantity
+		totalPrice = totalPrice.Add(orderDetail.Price)
+	}
+
+	res := RepositoryPublishLoadOrderEvent{
+		ID:              s.ID,
+		CashierID:       s.CashierID,
+		StoreID:         s.StoreID,
+		PaymentID:       s.PaymentID,
+		CustomerID:      s.CustomerID,
+		Currency:        s.Currency,
+		TotalQuantity:   totalQuantity,
+		TotalUnit:       totalUnit,
+		TotalPrice:      totalPrice,
+		TotalPriceInUSD: totalPrice.Mul(usdRate),
+		UsdRate:         usdRate,
+		CreatedAt:       s.CreatedAt,
+		OrderDetails:    []RepositoryPublishLoadOrderDetailEvent{},
 	}
 
 	for _, orderDetail := range s.OrderDetails {
-		res.OrderDetails = append(res.OrderDetails, PublishOrderDetailEventService{
-			ItemID:   orderDetail.ItemID,
-			Quantity: orderDetail.Quantity,
-			Unit:     orderDetail.Unit,
-			Price:    orderDetail.Price,
-		})
+		res.OrderDetails = append(res.OrderDetails, orderDetail.toRepositoryPublishLoadOrderDetailEvent())
 	}
 
 	return res
 }
 
-type PublishTransformOrderEventRepository struct {
-	ID           uuid.UUID                        `json:"id"`
-	CashierID    uuid.UUID                        `json:"cashier_id"`
-	StoreID      string                           `json:"store_id"`
-	PaymentID    string                           `json:"payment_id"`
-	CustomerID   string                           `json:"customer_id"`
-	Currency     string                           `json:"currency"`
-	CreatedAt    time.Time                        `json:"created_at"`
-	OrderDetails []PublishOrderDetailEventService `json:"order_details"`
+func (s ServiceTransformOrderDetail) toRepositoryPublishLoadOrderDetailEvent() RepositoryPublishLoadOrderDetailEvent {
+	return RepositoryPublishLoadOrderDetailEvent{
+		ID:       uuid.New(),
+		ItemID:   s.ItemID,
+		Quantity: s.Quantity,
+		Unit:     s.Unit,
+		Price:    s.Price,
+	}
 }
 
-type PublishTransformOrderDetailEventRepository struct {
+type RepositoryPublishLoadOrderEvent struct {
+	ID              uuid.UUID                               `json:"id"`
+	CashierID       uuid.UUID                               `json:"cashier_id"`
+	StoreID         string                                  `json:"store_id"`
+	PaymentID       string                                  `json:"payment_id"`
+	CustomerID      string                                  `json:"customer_id"`
+	TotalQuantity   int64                                   `json:"total_quantity"`
+	TotalUnit       int64                                   `json:"total_unit"`
+	Currency        string                                  `json:"currency"`
+	TotalPrice      decimal.Decimal                         `json:"total_price"`
+	TotalPriceInUSD decimal.Decimal                         `json:"total_price_in_usd"`
+	UsdRate         decimal.Decimal                         `json:"usd_rate"`
+	CreatedAt       time.Time                               `json:"created_at"`
+	OrderDetails    []RepositoryPublishLoadOrderDetailEvent `json:"order_details"`
+}
+
+type RepositoryPublishLoadOrderDetailEvent struct {
+	ID       uuid.UUID       `json:"id"`
 	ItemID   string          `json:"item_id"`
 	Quantity int64           `json:"quantity"`
 	Unit     string          `json:"unit"`

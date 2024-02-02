@@ -25,6 +25,7 @@ func New(
 		repository.Sharding,
 		repository.Order,
 		repository.Publisher,
+		repository.Currency,
 		repository.ShardDBTx,
 		repository.LongTermDBTx,
 		repository.GetShardIndexByDateTime,
@@ -33,7 +34,8 @@ func New(
 
 	auth := auth.New(
 		auth.Config{
-			Admin: config.JWT.Admin,
+			Admin:   config.JWT.Admin,
+			Cashier: config.JWT.Cashier,
 		},
 		repository.Account,
 		repository.Admin,

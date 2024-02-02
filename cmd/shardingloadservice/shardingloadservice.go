@@ -2,6 +2,7 @@ package shardingloadservice
 
 import (
 	"skripsi-be/config"
+	"skripsi-be/pkg/errors"
 	"skripsi-be/service"
 
 	inmiddleware "skripsi-be/cmd/middleware"
@@ -18,17 +19,17 @@ func Init(
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": kafkaConfig.Server,
 		"group.id":          kafkaConfig.Group.Shard,
-		"auto.offset.reset": "latest",
+		"auto.offset.reset": "earliest",
 	})
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	defer consumer.Close()
 
 	err = handler.Init(kafkaConfig, consumer, service)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	return nil
