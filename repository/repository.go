@@ -5,10 +5,13 @@ import (
 	"skripsi-be/config"
 	"skripsi-be/repository/account"
 	"skripsi-be/repository/admin"
+	"skripsi-be/repository/cashier"
 	"skripsi-be/repository/currency"
+	"skripsi-be/repository/customer"
 	"skripsi-be/repository/order"
 	"skripsi-be/repository/publisher"
 	"skripsi-be/repository/shard"
+	"skripsi-be/repository/store"
 	"skripsi-be/type/result"
 	"time"
 
@@ -18,12 +21,16 @@ import (
 )
 
 type Repository struct {
-	Sharding                shard.Repository
-	Order                   order.Repository
-	Account                 account.Repository
-	Admin                   admin.Repository
-	Publisher               publisher.Repository
-	Currency                currency.Repository
+	Sharding  shard.Repository
+	Order     order.Repository
+	Account   account.Repository
+	Admin     admin.Repository
+	Publisher publisher.Repository
+	Currency  currency.Repository
+	Cashier   cashier.Repository
+	Customer  customer.Repository
+	Store     store.Repository
+
 	LongTermDBTx            func(ctx context.Context) (*sqlx.Tx, error)
 	ShardDBTx               func(ctx context.Context, dbIndex int) (*sqlx.Tx, error)
 	GetShardIndexByDateTime func(date time.Time) (int, error)
@@ -76,6 +83,21 @@ func New(
 		redis,
 	)
 
+	cashier := cashier.New(
+		cashier.Config{},
+		generalDatabase,
+	)
+
+	customer := customer.New(
+		customer.Config{},
+		generalDatabase,
+	)
+
+	store := store.New(
+		store.Config{},
+		generalDatabase,
+	)
+
 	return Repository{
 		Sharding:  sharding,
 		Order:     order,
@@ -83,6 +105,9 @@ func New(
 		Admin:     admin,
 		Publisher: publisher,
 		Currency:  currency,
+		Cashier:   cashier,
+		Customer:  customer,
+		Store:     store,
 
 		LongTermDBTx:            beginLongTermDBTx(longTermDatabase),
 		ShardDBTx:               beginShardDBTx(shardingDatabase),

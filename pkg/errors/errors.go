@@ -19,13 +19,17 @@ var (
 )
 
 var (
-	ErrAccountNotFound    = errors.New("account not found")
-	ErrRecordNotFound     = errors.New("record not found")
-	ErrPermissionExpired  = errors.New("permission expired")
-	ErrUsernameDuplicated = errors.New("username is already exist")
-	ErrUsernameNotExist   = errors.New("username not exists")
-	ErrBeginTransaction   = errors.New("failed begin transaction")
-	ErrCommitTransaction  = errors.New("failed commit transaction")
+	ErrAccountNotFound         = errors.New("account not found")
+	ErrRecordNotFound          = errors.New("record not found")
+	ErrPermissionExpired       = errors.New("permission expired")
+	ErrUsernameDuplicated      = errors.New("username is already exist")
+	ErrUsernameNotExist        = errors.New("username not exists")
+	ErrBeginTransaction        = errors.New("failed begin transaction")
+	ErrCommitTransaction       = errors.New("failed commit transaction")
+	ErrCustomerCashierNotMatch = errors.New("customer and cashier not match")
+	ErrStoreNotFound           = errors.New("store not found")
+	ErrCustomerNotFound        = errors.New("customer not found")
+	ErrCashierNotFound         = errors.New("cashier not found")
 )
 
 var (

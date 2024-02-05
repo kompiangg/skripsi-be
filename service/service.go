@@ -26,6 +26,10 @@ func New(
 		repository.Order,
 		repository.Publisher,
 		repository.Currency,
+		repository.Cashier,
+		repository.Customer,
+		repository.Store,
+
 		repository.ShardDBTx,
 		repository.LongTermDBTx,
 		repository.GetShardIndexByDateTime,
