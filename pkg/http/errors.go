@@ -24,7 +24,7 @@ var errMap map[error]ErrorSchema = map[error]ErrorSchema{
 	x.ErrUsernameDuplicated:                    {HTTPErrorCode: http.StatusConflict, Message: x.ErrUsernameDuplicated.Error()},
 	x.ErrIncorrectPassword:                     {HTTPErrorCode: http.StatusUnauthorized, Message: x.ErrIncorrectPassword.Error()},
 	x.ErrUsernameNotExist:                      {HTTPErrorCode: http.StatusNotFound, Message: x.ErrUsernameNotExist.Error()},
-	x.ErrDataParamMustNotBeforeCurrentTime:     {HTTPErrorCode: http.StatusBadRequest, Message: x.ErrDataParamMustNotBeforeCurrentTime.Error()},
+	x.ErrDataParamMustNotAFterCurrentTime:      {HTTPErrorCode: http.StatusBadRequest, Message: x.ErrDataParamMustNotAFterCurrentTime.Error()},
 	x.ErrDataParamStartDateMustNotAfterEndDate: {HTTPErrorCode: http.StatusBadRequest, Message: x.ErrDataParamStartDateMustNotAfterEndDate.Error()},
 }
 

@@ -18,7 +18,7 @@ func (s service) IngestOrder(ctx context.Context, param []params.ServiceIngestio
 		}
 
 		if v.CreatedAt.After(s.config.Date.Now()) {
-			return nil, errors.Wrap(errors.ErrDataParamMustNotBeforeCurrentTime)
+			return nil, errors.Wrap(errors.ErrDataParamMustNotAFterCurrentTime)
 		}
 
 		repoParam[i] = v.ToRepositoryPublishTransformOrderEvent()

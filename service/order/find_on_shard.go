@@ -19,7 +19,7 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 	}
 
 	if param.StartDate.After(s.config.Date.Now()) || param.EndDate.After(s.config.Date.Now()) {
-		return nil, errors.Wrap(errors.ErrDataParamMustNotBeforeCurrentTime)
+		return nil, errors.Wrap(errors.ErrDataParamMustNotAFterCurrentTime)
 	}
 
 	if param.StartDate.After(param.EndDate) {
