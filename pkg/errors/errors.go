@@ -14,7 +14,7 @@ var (
 	ErrUnauthorized                          = errors.New("unauthorized")
 	ErrAuthTokenExpired                      = errors.New("token expired")
 	ErrIncorrectPassword                     = errors.New("incorrect password")
-	ErrDataParamMustNotBeforeCurrentTime     = errors.New("data param must not before current time")
+	ErrDataParamMustNotAFterCurrentTime      = errors.New("data param must not after current time")
 	ErrDataParamStartDateMustNotAfterEndDate = errors.New("start date must not after end date")
 )
 
