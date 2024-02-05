@@ -27,8 +27,7 @@ func getShardIndexByDateTime(shards config.Shards, customDate config.Date) func(
 	now := customDate.Now()
 
 	return func(date time.Time) (int, error) {
-		date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
-		now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		now = now.In(date.Location())
 
 		diff := now.Sub(date)
 		diffInDay := int(diff.Hours() / 24)
@@ -61,9 +60,10 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 	})
 
 	return func(startDate time.Time, endDate time.Time) ([]result.ShardTimeSeriesWhereQuery, error) {
-		startDate = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())
-		endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 0, 0, 0, 0, endDate.Location())
-		now := time.Date(customDate.Now().Year(), customDate.Now().Month(), customDate.Now().Day(), 0, 0, 0, 0, customDate.Now().Location())
+		startDateOriginTimeZone := startDate.Location()
+		endDateOriginTimeZone := endDate.Location()
+
+		now := customDate.Now().In(startDate.Location())
 
 		diffStart := now.Sub(startDate)
 		diffStartInDay := int(diffStart.Hours() / 24)
@@ -101,12 +101,12 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 		endDateQuery := time.Time{}
 
 		if len(choosedDB) == 1 {
-			startDateQuery = now.Add(-time.Duration(int(time.Hour) * 24 * diffStartInDay))
-			endDateQuery = now.Add(-time.Duration(int(time.Hour) * 24 * diffEndInDay))
+			startDateQuery = now.Add(-time.Duration(time.Nanosecond * diffStart))
+			endDateQuery = now.Add(-time.Duration(time.Nanosecond * diffEnd))
 
 			whereQueries = append(whereQueries, result.ShardTimeSeriesWhereQuery{
-				StartDate:  time.Date(startDateQuery.Year(), startDateQuery.Month(), startDateQuery.Day(), 0, 0, 0, 0, startDateQuery.Location()),
-				EndDate:    time.Date(endDateQuery.Year(), endDateQuery.Month(), endDateQuery.Day(), 23, 59, 59, 0, endDateQuery.Location()),
+				StartDate:  startDateQuery.In(startDateOriginTimeZone),
+				EndDate:    endDateQuery.In(endDateOriginTimeZone),
 				ShardIndex: endIdx,
 			})
 
@@ -114,20 +114,29 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 		}
 
 		for i, v := range choosedDB {
+			durationInDay := time.Duration(v.DataRetention+1) * 24 * time.Hour
+			dayInNanoSecond := durationInDay.Nanoseconds()
+
+			var oneIndexBeforeDayInNanoSecond int64
+			if i != 0 {
+				oneIndexBeforeDurationInDay := time.Duration(choosedDB[i-1].DataRetention+1) * 24 * time.Hour
+				oneIndexBeforeDayInNanoSecond = oneIndexBeforeDurationInDay.Nanoseconds()
+			}
+
 			if i == 0 {
-				startDateQuery = now.Add(-time.Duration(int(time.Hour) * 24 * v.DataRetention))
-				endDateQuery = now.Add(-time.Duration(int(time.Hour) * 24 * diffEndInDay))
+				startDateQuery = now.Add(-time.Duration(dayInNanoSecond) * time.Nanosecond)
+				endDateQuery = now.Add(-time.Duration(time.Nanosecond * diffEnd))
 			} else if i == len(choosedDB)-1 {
-				startDateQuery = now.Add(-time.Duration(int(time.Hour) * 24 * diffStartInDay))
-				endDateQuery = now.Add(-time.Duration(int(time.Hour) * 24 * (choosedDB[i-1].DataRetention + 1)))
+				startDateQuery = now.Add(-time.Duration(time.Nanosecond * diffStart))
+				endDateQuery = now.Add(-time.Duration(oneIndexBeforeDayInNanoSecond) * time.Nanosecond)
 			} else {
-				startDateQuery = now.Add(-time.Duration(int(time.Hour) * 24 * v.DataRetention))
-				endDateQuery = now.Add(-time.Duration(int(time.Hour) * 24 * (choosedDB[i-1].DataRetention + 1)))
+				startDateQuery = now.Add(-time.Duration(dayInNanoSecond) * time.Nanosecond)
+				endDateQuery = now.Add(-time.Duration(oneIndexBeforeDayInNanoSecond) * time.Nanosecond)
 			}
 
 			whereQueries = append(whereQueries, result.ShardTimeSeriesWhereQuery{
-				StartDate: time.Date(startDateQuery.Year(), startDateQuery.Month(), startDateQuery.Day(), 0, 0, 0, 0, startDateQuery.Location()),
-				EndDate:   time.Date(endDateQuery.Year(), endDateQuery.Month(), endDateQuery.Day(), 23, 59, 59, 0, endDateQuery.Location()),
+				StartDate: startDateQuery.In(startDateOriginTimeZone),
+				EndDate:   endDateQuery.In(endDateOriginTimeZone),
 			})
 		}
 

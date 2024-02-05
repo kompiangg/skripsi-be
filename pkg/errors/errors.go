@@ -2,9 +2,9 @@ package errors
 
 import (
 	"errors"
+	"fmt"
 
 	errorsx "github.com/go-errors/errors"
-	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -40,7 +40,7 @@ func Wrap(cause error) error {
 		return nil
 	}
 
-	return errorsx.Wrap(cause, 0)
+	return errorsx.Wrap(cause, 1)
 }
 
 func Unwrap(err error) error {
@@ -55,7 +55,12 @@ func Unwrap(err error) error {
 }
 
 func ErrorStack(err error) {
-	log.Err(err).Msgf("%+v", err.(*errorsx.Error).ErrorStack())
+	if err != nil {
+		var errorsErr *errorsx.Error
+		if errorsx.As(err, &errorsErr) {
+			fmt.Println(errorsErr.ErrorStack())
+		}
+	}
 }
 
 func New(e interface{}) *errorsx.Error {

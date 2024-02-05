@@ -71,7 +71,7 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 							TotalPriceInUSD: order[idx].TotalPriceInUSD,
 							Currency:        order[idx].Currency,
 							UsdRate:         order[idx].UsdRate,
-							CreatedAt:       order[idx].CreatedAt,
+							CreatedAt:       order[idx].CreatedAt.In(param.StartDate.Location()),
 							OrderDetails:    make([]result.OrderDetail, 0),
 						})
 
@@ -142,7 +142,7 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 					TotalPriceInUSD: order[idx].TotalPriceInUSD,
 					Currency:        order[idx].Currency,
 					UsdRate:         order[idx].UsdRate,
-					CreatedAt:       order[idx].CreatedAt,
+					CreatedAt:       order[idx].CreatedAt.In(param.StartDate.Location()),
 					OrderDetails:    make([]result.OrderDetail, 0),
 				})
 

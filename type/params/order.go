@@ -232,8 +232,8 @@ func (s ServiceInsertOrdersToLongTermParam) Validate(ctx context.Context) error 
 }
 
 type FindOrderService struct {
-	StartDate time.Time `json:"start_date"`
-	EndDate   time.Time `json:"end_date"`
+	StartDate time.Time `query:"start_date"`
+	EndDate   time.Time `query:"end_date"`
 }
 
 type ServiceIngestionOrder struct {

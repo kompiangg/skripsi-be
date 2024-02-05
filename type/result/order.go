@@ -23,7 +23,7 @@ type Order struct {
 	Currency        null.String     `json:"currency"`
 	UsdRate         decimal.Decimal `json:"usd_rate"`
 	CreatedAt       time.Time       `json:"created_at"`
-	OrderDetails    []OrderDetail   `json:"-"`
+	OrderDetails    []OrderDetail   `json:"order_details"`
 }
 
 type OrderDetail struct {

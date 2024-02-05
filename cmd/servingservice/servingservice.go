@@ -18,6 +18,7 @@ import (
 func Init(
 	service service.Service,
 	config config.ServingService,
+	globalConfig config.Config,
 	mw inmiddleware.Middleware,
 ) error {
 	e := echo.New()
@@ -27,7 +28,7 @@ func Init(
 		},
 	))
 
-	handler.Init(e, service, mw)
+	handler.Init(e, service, mw, globalConfig)
 
 	log.Info().Msgf("Starting Auth Service HTTP server on %s:%d", config.Host, config.Port)
 	err := http.Start(http.HTTPServerConfig{

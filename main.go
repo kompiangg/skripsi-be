@@ -136,6 +136,7 @@ func main() {
 		err = servingservice.Init(
 			service,
 			config.Microservice.ServingService,
+			config,
 			mw,
 		)
 		if err != nil {

@@ -44,7 +44,7 @@ func WriteErrorResponse(c echo.Context, errParam error, detail interface{}) erro
 		} else if echoHTTPError.Code == http.StatusBadRequest {
 			e.Message = x.ErrBadRequest.Error()
 			e.HTTPErrorCode = echo.ErrBadRequest.Code
-			detail = echoHTTPError.Error()
+			detail = echoHTTPError.Message
 		}
 	} else {
 		e = httppkg.GetResponseErr(errParam)
