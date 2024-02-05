@@ -29,6 +29,7 @@ func New(
 		repository.Cashier,
 		repository.Customer,
 		repository.Store,
+		repository.Item,
 
 		repository.ShardDBTx,
 		repository.LongTermDBTx,
