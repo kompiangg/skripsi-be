@@ -27,9 +27,10 @@ var errMap map[error]ErrorSchema = map[error]ErrorSchema{
 	x.ErrDataParamMustNotAFterCurrentTime:      {HTTPErrorCode: http.StatusBadRequest, Message: x.ErrDataParamMustNotAFterCurrentTime.Error()},
 	x.ErrDataParamStartDateMustNotAfterEndDate: {HTTPErrorCode: http.StatusBadRequest, Message: x.ErrDataParamStartDateMustNotAfterEndDate.Error()},
 	x.ErrCustomerCashierNotMatch:               {HTTPErrorCode: http.StatusUnauthorized, Message: x.ErrCustomerCashierNotMatch.Error()},
-	x.ErrStoreNotFound:                         {HTTPErrorCode: http.StatusNotFound, Message: x.ErrStoreNotFound.Error()},
-	x.ErrCustomerNotFound:                      {HTTPErrorCode: http.StatusNotFound, Message: x.ErrCustomerNotFound.Error()},
-	x.ErrCashierNotFound:                       {HTTPErrorCode: http.StatusNotFound, Message: x.ErrCashierNotFound.Error()},
+	x.ErrStoreNotFound:                         {HTTPErrorCode: http.StatusBadRequest, Message: x.ErrStoreNotFound.Error()},
+	x.ErrCustomerNotFound:                      {HTTPErrorCode: http.StatusBadRequest, Message: x.ErrCustomerNotFound.Error()},
+	x.ErrCashierNotFound:                       {HTTPErrorCode: http.StatusBadRequest, Message: x.ErrCashierNotFound.Error()},
+	x.ErrItemNotFound:                          {HTTPErrorCode: http.StatusBadRequest, Message: x.ErrItemNotFound.Error()},
 }
 
 func GetResponseErr(param error) ErrorSchema {

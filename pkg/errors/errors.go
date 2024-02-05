@@ -30,6 +30,7 @@ var (
 	ErrStoreNotFound           = errors.New("store not found")
 	ErrCustomerNotFound        = errors.New("customer not found")
 	ErrCashierNotFound         = errors.New("cashier not found")
+	ErrItemNotFound            = errors.New("item not found")
 )
 
 var (

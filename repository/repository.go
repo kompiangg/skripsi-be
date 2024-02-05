@@ -8,6 +8,7 @@ import (
 	"skripsi-be/repository/cashier"
 	"skripsi-be/repository/currency"
 	"skripsi-be/repository/customer"
+	"skripsi-be/repository/item"
 	"skripsi-be/repository/order"
 	"skripsi-be/repository/publisher"
 	"skripsi-be/repository/shard"
@@ -30,6 +31,7 @@ type Repository struct {
 	Cashier   cashier.Repository
 	Customer  customer.Repository
 	Store     store.Repository
+	Item      item.Repository
 
 	LongTermDBTx            func(ctx context.Context) (*sqlx.Tx, error)
 	ShardDBTx               func(ctx context.Context, dbIndex int) (*sqlx.Tx, error)
@@ -98,6 +100,11 @@ func New(
 		generalDatabase,
 	)
 
+	item := item.New(
+		item.Config{},
+		generalDatabase,
+	)
+
 	return Repository{
 		Sharding:  sharding,
 		Order:     order,
@@ -108,6 +115,7 @@ func New(
 		Cashier:   cashier,
 		Customer:  customer,
 		Store:     store,
+		Item:      item,
 
 		LongTermDBTx:            beginLongTermDBTx(longTermDatabase),
 		ShardDBTx:               beginShardDBTx(shardingDatabase),

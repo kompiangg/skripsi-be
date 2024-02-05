@@ -16,6 +16,7 @@ func (s service) IngestOrder(ctx context.Context, param []params.ServiceIngestio
 	storeIDMap := make(map[string]bool)
 	cashierIDMap := make(map[uuid.UUID]bool)
 	customerIDMap := make(map[string]bool)
+	itemIDMap := make(map[string]bool)
 
 	for i, v := range param {
 		err := v.Validate()
@@ -64,6 +65,17 @@ func (s service) IngestOrder(ctx context.Context, param []params.ServiceIngestio
 			}
 
 			customerIDMap[v.CustomerID] = true
+		}
+
+		for _, item := range v.OrderDetails {
+			if _, ok := itemIDMap[item.ItemID]; !ok {
+				_, err = s.itemRepo.FindByID(ctx, item.ItemID)
+				if errors.Is(err, errors.ErrRecordNotFound) {
+					return nil, errors.Wrap(errors.ErrItemNotFound)
+				} else if err != nil {
+					return nil, errors.Wrap(err)
+				}
+			}
 		}
 
 		repoParam[i] = v.ToRepositoryPublishTransformOrderEvent()

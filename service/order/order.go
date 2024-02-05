@@ -6,6 +6,7 @@ import (
 	"skripsi-be/repository/cashier"
 	"skripsi-be/repository/currency"
 	"skripsi-be/repository/customer"
+	"skripsi-be/repository/item"
 	"skripsi-be/repository/order"
 	"skripsi-be/repository/publisher"
 	"skripsi-be/repository/shard"
@@ -43,6 +44,7 @@ type service struct {
 	cashierRepo   cashier.Repository
 	customerRepo  customer.Repository
 	storeRepo     store.Repository
+	itemRepo      item.Repository
 
 	beginShardTx            func(ctx context.Context, dbIdx int) (*sqlx.Tx, error)
 	beginLongTermTx         func(ctx context.Context) (*sqlx.Tx, error)
@@ -59,6 +61,7 @@ func New(
 	cashierRepo cashier.Repository,
 	customerRepo customer.Repository,
 	storeRepo store.Repository,
+	itemRepo item.Repository,
 
 	beginShardTx func(ctx context.Context, dbIdx int) (*sqlx.Tx, error),
 	beginLongTermTx func(ctx context.Context) (*sqlx.Tx, error),
@@ -74,6 +77,7 @@ func New(
 		cashierRepo:   cashierRepo,
 		customerRepo:  customerRepo,
 		storeRepo:     storeRepo,
+		itemRepo:      itemRepo,
 
 		beginShardTx:            beginShardTx,
 		beginLongTermTx:         beginLongTermTx,
