@@ -16,14 +16,6 @@ func (h handler) GetAll(c echo.Context) error {
 		return httpx.WriteErrorResponse(c, errors.Wrap(err), nil)
 	}
 
-	if req.StartDate.IsZero() {
-		req.StartDate = h.config.Date.Now()
-	}
-
-	if req.EndDate.IsZero() {
-		req.EndDate = h.config.Date.Now()
-	}
-
 	allOrders, err := h.service.FindOrder(c.Request().Context(), req)
 	if err != nil {
 		return httpx.WriteErrorResponse(c, errors.Wrap(err), nil)

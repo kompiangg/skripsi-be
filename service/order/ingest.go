@@ -13,6 +13,10 @@ func (s service) IngestOrder(ctx context.Context, param []params.ServiceIngestio
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
+
+		if v.CreatedAt.After(s.config.Date.Now()) {
+			return nil, errors.Wrap(errors.ErrDataParamMustNotBeforeCurrentTime)
+		}
 	}
 
 	res := make([]result.ServiceIngestOrder, len(param))

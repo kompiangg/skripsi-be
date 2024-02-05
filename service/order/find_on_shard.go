@@ -13,6 +13,19 @@ import (
 )
 
 func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (allOrders []result.Order, err error) {
+	err = param.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+
+	if param.StartDate.After(s.config.Date.Now()) || param.EndDate.After(s.config.Date.Now()) {
+		return nil, errors.Wrap(errors.ErrDataParamMustNotBeforeCurrentTime)
+	}
+
+	if param.StartDate.After(param.EndDate) {
+		return nil, errors.Wrap(errors.ErrDataParamStartDateMustNotAfterEndDate)
+	}
+
 	param.StartDate = time.Date(param.StartDate.Year(), param.StartDate.Month(), param.StartDate.Day(), 0, 0, 0, 0, param.StartDate.Location())
 	param.EndDate = time.Date(param.EndDate.Year(), param.EndDate.Month(), param.EndDate.Day(), 23, 59, 59, 0, param.EndDate.Location())
 

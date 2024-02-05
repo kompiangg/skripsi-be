@@ -236,6 +236,13 @@ type FindOrderService struct {
 	EndDate   time.Time `query:"end_date"`
 }
 
+func (s FindOrderService) Validate() error {
+	return validation.ValidateStruct(&s,
+		validation.Field(&s.StartDate, validation.Required, validation.NotNil),
+		validation.Field(&s.EndDate, validation.Required, validation.NotNil),
+	)
+}
+
 type ServiceIngestionOrder struct {
 	StoreID      string                        `json:"store_id"`
 	PaymentID    string                        `json:"payment_id"`

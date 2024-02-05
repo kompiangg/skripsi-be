@@ -8,12 +8,14 @@ import (
 )
 
 var (
-	ErrInternalServer    = errors.New("internal server error")
-	ErrBadRequest        = errors.New("bad request")
-	ErrNotFound          = errors.New("not found")
-	ErrUnauthorized      = errors.New("unauthorized")
-	ErrAuthTokenExpired  = errors.New("token expired")
-	ErrIncorrectPassword = errors.New("incorrect password")
+	ErrInternalServer                        = errors.New("internal server error")
+	ErrBadRequest                            = errors.New("bad request")
+	ErrNotFound                              = errors.New("not found")
+	ErrUnauthorized                          = errors.New("unauthorized")
+	ErrAuthTokenExpired                      = errors.New("token expired")
+	ErrIncorrectPassword                     = errors.New("incorrect password")
+	ErrDataParamMustNotBeforeCurrentTime     = errors.New("data param must not before current time")
+	ErrDataParamStartDateMustNotAfterEndDate = errors.New("start date must not after end date")
 )
 
 var (
@@ -40,7 +42,7 @@ func Wrap(cause error) error {
 		return nil
 	}
 
-	return errorsx.Wrap(cause, 1)
+	return errorsx.Wrap(cause, 0)
 }
 
 func Unwrap(err error) error {
