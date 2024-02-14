@@ -5,10 +5,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (m middleware) Admin() echo.MiddlewareFunc {
-	return echojwt.WithConfig(m.adminJWTConfig)
-}
-
-func (m middleware) Cashier() echo.MiddlewareFunc {
-	return echojwt.WithConfig(m.cashierJWTConfig)
+func (m middleware) JWTRestricted() echo.MiddlewareFunc {
+	return echojwt.WithConfig(m.jwt)
 }

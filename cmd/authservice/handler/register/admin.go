@@ -18,14 +18,13 @@ func (h handler) Admin(c echo.Context) error {
 		return httpx.WriteErrorResponse(c, errors.New(err), nil)
 	}
 
-	jwtClaims, err := httpx.GetJWTClaimsFromContext(c, constant.AdminContextKey)
+	jwtClaims, err := httpx.GetJWTClaimsFromContext(c, constant.AuthContextKey)
 	if err != nil {
 		return httpx.WriteErrorResponse(c, errors.New(err), nil)
 	}
 
-	requestBy, ok := jwtClaims["sub"].(string)
-	if !ok {
-		err = errors.New("cannot get request by from jwt claims")
+	requestBy, err := jwtClaims.GetSubject()
+	if err != nil {
 		return httpx.WriteErrorResponse(c, err, nil)
 	}
 

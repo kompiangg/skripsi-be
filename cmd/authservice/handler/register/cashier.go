@@ -18,13 +18,13 @@ func (h handler) Cashier(c echo.Context) error {
 		return httpx.WriteErrorResponse(c, errors.New(err), nil)
 	}
 
-	jwtClaims, err := httpx.GetJWTClaimsFromContext(c, constant.AdminContextKey)
+	jwtClaims, err := httpx.GetJWTClaimsFromContext(c, constant.AuthContextKey)
 	if err != nil {
 		return httpx.WriteErrorResponse(c, errors.New(err), nil)
 	}
 
-	requestBy, ok := jwtClaims["sub"].(string)
-	if !ok {
+	requestBy, err := jwtClaims.GetSubject()
+	if err != nil {
 		err = errors.New("cannot get request by from jwt claims")
 		return httpx.WriteErrorResponse(c, err, nil)
 	}

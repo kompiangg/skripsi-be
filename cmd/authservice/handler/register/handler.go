@@ -20,6 +20,6 @@ func Init(
 		service: service,
 	}
 
-	echo.POST("/v1/register/admin", h.Admin, middleware.Admin())
-	echo.POST("/v1/register/cashier", h.Cashier, middleware.Cashier())
+	echo.POST("/v1/register/admin", h.Admin, middleware.JWTRestricted())
+	echo.POST("/v1/register/cashier", h.Cashier, middleware.JWTRestricted())
 }

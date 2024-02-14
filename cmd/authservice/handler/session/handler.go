@@ -15,6 +15,5 @@ func Init(e *echo.Echo, service auth.Service) {
 		authService: service,
 	}
 
-	e.POST("/v1/session/admin", h.Admin)
-	e.POST("/v1/session/cashier", h.Cashier)
+	e.POST("/v1/session", h.NewSession)
 }

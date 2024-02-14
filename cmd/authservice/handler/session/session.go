@@ -8,14 +8,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (h handler) Admin(c echo.Context) error {
-	var req params.ServiceLoginAdmin
+func (h handler) NewSession(c echo.Context) error {
+	var req params.ServiceLogin
 	err := c.Bind(&req)
 	if err != nil {
 		return httpx.WriteErrorResponse(c, err, nil)
 	}
 
-	res, err := h.authService.AdminLogin(c.Request().Context(), req)
+	res, err := h.authService.Login(c.Request().Context(), req)
 	if err != nil {
 		return httpx.WriteErrorResponse(c, err, nil)
 	}

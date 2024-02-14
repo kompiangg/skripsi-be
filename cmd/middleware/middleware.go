@@ -9,30 +9,24 @@ import (
 )
 
 type middleware struct {
-	config           Config
-	cashierJWTConfig echojwt.Config
-	adminJWTConfig   echojwt.Config
+	config Config
+	jwt    echojwt.Config
 }
 
 type Middleware interface {
-	Admin() echo.MiddlewareFunc
-	Cashier() echo.MiddlewareFunc
+	JWTRestricted() echo.MiddlewareFunc
 }
 
 type Config struct {
-	JWTConfig config.JWT
+	JWT config.JWT
 }
 
 func New(config Config) middleware {
 	return middleware{
 		config: config,
-		cashierJWTConfig: echojwt.Config{
-			SigningKey: []byte(config.JWTConfig.Cashier.Secret),
-			ContextKey: constant.CashierContextKey,
-		},
-		adminJWTConfig: echojwt.Config{
-			SigningKey: []byte(config.JWTConfig.Admin.Secret),
-			ContextKey: constant.AdminContextKey,
+		jwt: echojwt.Config{
+			SigningKey: []byte(config.JWT.Secret),
+			ContextKey: constant.AuthContextKey,
 		},
 	}
 }

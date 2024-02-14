@@ -18,7 +18,7 @@ func (h handler) CreateNewOrder(c echo.Context) error {
 		return httpx.WriteErrorResponse(c, errors.ErrBadRequest, "bad request")
 	}
 
-	jwtClaims, err := httpx.GetJWTClaimsFromContext(c, constant.CashierContextKey)
+	jwtClaims, err := httpx.GetJWTClaimsFromContext(c, constant.AuthContextKey)
 	if err != nil {
 		return httpx.WriteErrorResponse(c, errors.ErrInternalServer, "cannot get jwt claims from context")
 	}

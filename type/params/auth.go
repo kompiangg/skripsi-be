@@ -12,7 +12,8 @@ type ServiceRegisterAdmin struct {
 	Password string `json:"password"`
 	Name     string `json:"name"`
 
-	RequestBy uuid.UUID `json:"-"`
+	RequestBy     uuid.UUID `json:"-"`
+	RequestByRole string    `json:"-"`
 }
 
 func (s ServiceRegisterAdmin) Validate() error {
@@ -37,24 +38,12 @@ func (s ServiceRegisterAdmin) ToAdminModel(accountID uuid.UUID) model.Admin {
 	}
 }
 
-type ServiceLoginAdmin struct {
+type ServiceLogin struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-func (s ServiceLoginAdmin) Validate() error {
-	return validation.ValidateStruct(&s,
-		validation.Field(&s.Username, validation.Required),
-		validation.Field(&s.Password, validation.Required),
-	)
-}
-
-type ServiceLoginCashier struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-func (s ServiceLoginCashier) Validate() error {
+func (s ServiceLogin) Validate() error {
 	return validation.ValidateStruct(&s,
 		validation.Field(&s.Username, validation.Required),
 		validation.Field(&s.Password, validation.Required),

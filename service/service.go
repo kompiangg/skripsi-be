@@ -39,11 +39,11 @@ func New(
 
 	auth := auth.New(
 		auth.Config{
-			Admin:   config.JWT.Admin,
-			Cashier: config.JWT.Cashier,
+			JWT: config.JWT,
 		},
 		repository.Account,
 		repository.Admin,
+		repository.Cashier,
 	)
 
 	return Service{

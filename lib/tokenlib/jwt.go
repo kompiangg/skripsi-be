@@ -1,18 +1,13 @@
 package tokenlib
 
 import (
-	"time"
+	"skripsi-be/type/entity"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateJWT(userId string, secretKey string, durationInDay int) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		Subject:   userId,
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(durationInDay) * 24 * time.Hour)),
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-	})
-
+func GenerateJWT(claims entity.CustomJWTClaims, secretKey string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(secretKey))
 	if err != nil {
 		return "", err

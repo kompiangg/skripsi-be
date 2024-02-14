@@ -10,6 +10,7 @@ import (
 
 type Repository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (model.Cashier, error)
+	FindCashierAccountByID(ctx context.Context, id uuid.UUID) (model.Account, error)
 }
 
 type Config struct {

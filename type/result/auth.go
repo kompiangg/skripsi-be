@@ -1,9 +1,6 @@
 package result
 
-type ServiceAdminLoginResult struct {
+type ServiceLoginResult struct {
 	Token string `json:"token"`
-}
-
-type ServiceCashierLoginResult struct {
-	Token string `json:"token"`
+	Role  string `json:"role"`
 }

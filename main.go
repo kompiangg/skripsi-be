@@ -72,7 +72,7 @@ func main() {
 
 	mw := middleware.New(
 		middleware.Config{
-			JWTConfig: config.JWT,
+			JWT: config.JWT,
 		},
 	)
 

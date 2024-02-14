@@ -105,8 +105,8 @@ services:
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "9092"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 20s
+      retries: 10
   kafka2:
     image: confluentinc/cp-kafka:latest
     ports:
@@ -125,8 +125,8 @@ services:
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "9092"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 20s
+      retries: 10
   kafdrop:
     image: obsidiandynamics/kafdrop
     ports:
