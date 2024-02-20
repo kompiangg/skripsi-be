@@ -31,23 +31,29 @@ func (s service) Login(ctx context.Context, param params.ServiceLogin) (res resu
 		return res, errors.Wrap(errors.ErrIncorrectPassword)
 	}
 
-	_, err = s.cashierRepo.FindCashierAccountByID(ctx, account.ID)
+	var name string
+
+	cashier, err := s.cashierRepo.FindCashierAccountByID(ctx, account.ID)
 	if errors.Is(err, errors.ErrRecordNotFound) {
 		_, err := s.adminRepo.FindAdminAccountByID(ctx, account.ID)
 		if errors.Is(err, errors.ErrRecordNotFound) {
 			return res, errors.Wrap(errors.ErrAccountNotFound)
+		} else if err != nil {
+			return res, errors.Wrap(err)
 		}
 
 		res.Role = constant.RoleEnum.Admin
 	} else if err != nil {
-		return res, err
+		return res, errors.Wrap(err)
 	} else {
 		res.Role = constant.RoleEnum.Cashier
+		name = cashier.Name
 	}
 
 	now := time.Now()
 	token, err := tokenlib.GenerateJWT(entity.CustomJWTClaims{
 		Role: res.Role,
+		Name: name,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   account.ID.String(),
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24 * time.Duration(s.config.JWT.ExpInDay))),

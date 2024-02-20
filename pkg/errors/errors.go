@@ -19,7 +19,7 @@ var (
 )
 
 var (
-	ErrAccountNotFound         = errors.New("account not found")
+	ErrAccountNotFound         = errors.New("Wrong username or password")
 	ErrRecordNotFound          = errors.New("record not found")
 	ErrPermissionExpired       = errors.New("permission expired")
 	ErrUsernameDuplicated      = errors.New("username is already exist")

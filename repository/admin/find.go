@@ -34,29 +34,29 @@ func (r repository) FindAdminByID(ctx context.Context, id uuid.UUID) (model.Admi
 	return admin, nil
 }
 
-func (r repository) FindAdminAccountByID(ctx context.Context, id uuid.UUID) (model.Account, error) {
+func (r repository) FindAdminAccountByID(ctx context.Context, id uuid.UUID) (model.Admin, error) {
 	q := `
 	SELECT
-		accounts.id as id,
-		accounts.username as username,
-		accounts.password as password,
-		accounts.created_at as created_at
+		admins.id as id,
+		admins.account_id as account_id,
+		admins.name as name,
+		admins.created_at as created_at
 	FROM
-		accounts
+		admins
 	INNER JOIN
-		admins ON admins.account_id = accounts.id
+		accounts ON admins.account_id = accounts.id
 	WHERE
 		accounts.id = $1
 	;
 	`
 
-	var account model.Account
-	err := r.generalDB.GetContext(ctx, &account, q, id)
+	var admin model.Admin
+	err := r.generalDB.GetContext(ctx, &admin, q, id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Account{}, errors.New(errors.ErrRecordNotFound)
+		return model.Admin{}, errors.New(errors.ErrRecordNotFound)
 	} else if err != nil {
-		return model.Account{}, errors.New(err)
+		return model.Admin{}, errors.New(err)
 	}
 
-	return account, nil
+	return admin, nil
 }

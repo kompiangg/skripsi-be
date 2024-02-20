@@ -79,7 +79,7 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 		return errors.Wrap(err, constant.SkipErrorParameter)
 	}
 
-	iteration := 100
+	iteration := 1
 	for i := 0; i < iteration; i++ {
 		log.Info().Msgf("Iteration %d", i+1)
 
