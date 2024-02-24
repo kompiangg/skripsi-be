@@ -8,12 +8,13 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 	"github.com/shopspring/decimal"
 	"github.com/volatiletech/null/v9"
 )
 
 type ServiceInsertOrderToShard struct {
-	ID              uuid.UUID           `json:"id"`
+	ID              ulid.ULID           `json:"id"`
 	CashierID       uuid.UUID           `json:"cashier_id"`
 	StoreID         string              `json:"store_id"`
 	PaymentID       string              `json:"payment_id"`
@@ -48,7 +49,7 @@ func (s ServiceInsertOrderToShard) ToOrderModelInSeeder() model.Order {
 	}
 
 	return model.Order{
-		ID:              s.ID,
+		ID:              s.ID.String(),
 		CashierID:       s.CashierID,
 		StoreID:         null.StringFrom(s.StoreID),
 		PaymentID:       null.StringFrom(s.PaymentID),
@@ -66,7 +67,7 @@ func (s ServiceInsertOrderToShard) ToOrderModelInSeeder() model.Order {
 
 func (s ServiceInsertOrderToShard) ToOrderModel() model.Order {
 	return model.Order{
-		ID:              s.ID,
+		ID:              s.ID.String(),
 		CashierID:       s.CashierID,
 		StoreID:         null.StringFrom(s.StoreID),
 		PaymentID:       null.StringFrom(s.PaymentID),
@@ -88,7 +89,7 @@ func (s ServiceInsertOrderToShard) ToOrderDetailModel() []model.OrderDetail {
 	for _, orderDetail := range s.OrderDetails {
 		orderDetails = append(orderDetails, model.OrderDetail{
 			ID:       orderDetail.ID,
-			OrderID:  s.ID,
+			OrderID:  s.ID.String(),
 			ItemID:   null.StringFrom(orderDetail.ItemID),
 			Quantity: null.NewInt64(orderDetail.Quantity, true),
 			Unit:     null.StringFrom(orderDetail.Unit),
@@ -104,7 +105,7 @@ type ServiceInsertOrdersToShardParam []ServiceInsertOrderToShard
 func (s ServiceInsertOrdersToShardParam) Validate(ctx context.Context) error {
 	for _, order := range s {
 		err := validation.ValidateStructWithContext(ctx, &order,
-			validation.Field(&order.ID, validation.Required, validation.NotNil, is.UUIDv4),
+			validation.Field(&order.ID, validation.Required, validation.NotNil),
 			validation.Field(&order.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
 			validation.Field(&order.StoreID, validation.Required, validation.NotNil),
 			validation.Field(&order.PaymentID, validation.Required, validation.NotNil),
@@ -123,7 +124,7 @@ func (s ServiceInsertOrdersToShardParam) Validate(ctx context.Context) error {
 }
 
 type ServiceInsertOrderToLongTermParam struct {
-	ID              uuid.UUID              `json:"id"`
+	ID              ulid.ULID              `json:"id"`
 	CashierID       uuid.UUID              `json:"cashier_id"`
 	StoreID         string                 `json:"store_id"`
 	PaymentID       string                 `json:"payment_id"`
@@ -158,7 +159,7 @@ func (s ServiceInsertOrderToLongTermParam) ToOrderModelInSeeder() model.Order {
 	}
 
 	return model.Order{
-		ID:              s.ID,
+		ID:              s.ID.String(),
 		CashierID:       s.CashierID,
 		StoreID:         null.StringFrom(s.StoreID),
 		PaymentID:       null.StringFrom(s.PaymentID),
@@ -176,7 +177,7 @@ func (s ServiceInsertOrderToLongTermParam) ToOrderModelInSeeder() model.Order {
 
 func (s ServiceInsertOrderToLongTermParam) ToOrderModel() model.Order {
 	return model.Order{
-		ID:              s.ID,
+		ID:              s.ID.String(),
 		CashierID:       s.CashierID,
 		StoreID:         null.StringFrom(s.StoreID),
 		PaymentID:       null.StringFrom(s.PaymentID),
@@ -197,7 +198,7 @@ func (s ServiceInsertOrderToLongTermParam) ToOrderDetailModel() []model.OrderDet
 	for _, orderDetail := range s.OrderDetails {
 		orderDetails = append(orderDetails, model.OrderDetail{
 			ID:       orderDetail.ID,
-			OrderID:  s.ID,
+			OrderID:  s.ID.String(),
 			ItemID:   null.StringFrom(orderDetail.ItemID),
 			Quantity: null.NewInt64(orderDetail.Quantity, true),
 			Unit:     null.StringFrom(orderDetail.Unit),
@@ -213,7 +214,7 @@ type ServiceInsertOrdersToLongTermParam []ServiceInsertOrderToLongTermParam
 func (s ServiceInsertOrdersToLongTermParam) Validate(ctx context.Context) error {
 	for _, order := range s {
 		err := validation.ValidateStructWithContext(ctx, &order,
-			validation.Field(&order.ID, validation.Required, validation.NotNil, is.UUIDv4),
+			validation.Field(&order.ID, validation.Required, validation.NotNil),
 			validation.Field(&order.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
 			validation.Field(&order.StoreID, validation.Required, validation.NotNil),
 			validation.Field(&order.PaymentID, validation.Required, validation.NotNil),

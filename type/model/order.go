@@ -9,7 +9,7 @@ import (
 )
 
 type Order struct {
-	ID              uuid.UUID       `db:"id"`
+	ID              string          `db:"id"`
 	CashierID       uuid.UUID       `db:"cashier_id"`
 	StoreID         null.String     `db:"store_id"`
 	PaymentID       null.String     `db:"payment_id"`
@@ -26,7 +26,7 @@ type Order struct {
 
 type OrderDetail struct {
 	ID       uuid.UUID       `db:"id"`
-	OrderID  uuid.UUID       `db:"order_id"`
+	OrderID  string          `db:"order_id"`
 	ItemID   null.String     `db:"item_id"`
 	Quantity null.Int64      `db:"quantity"`
 	Unit     null.String     `db:"unit"`
@@ -34,7 +34,7 @@ type OrderDetail struct {
 }
 
 type OrderWithOrderDetails struct {
-	OrderID         uuid.UUID       `db:"order_id"`
+	OrderID         string          `db:"order_id"`
 	OrderDetailID   uuid.UUID       `db:"order_detail_id"`
 	CashierID       uuid.UUID       `db:"cashier_id"`
 	StoreID         null.String     `db:"store_id"`

@@ -13,6 +13,11 @@ services:
       - 9999:5432
     networks:
       - skripsi-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
   longterm-db:
     image: postgres:14.7
     restart: unless-stopped
@@ -25,6 +30,11 @@ services:
       - 9000:5432
     networks:
       - skripsi-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
   sharding-oneday-db:
     image: postgres:14.7
     restart: unless-stopped
@@ -37,6 +47,11 @@ services:
       - 9001:5432
     networks:
       - skripsi-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
   sharding-sevenday-db:
     image: postgres:14.7
     restart: unless-stopped
@@ -49,6 +64,11 @@ services:
       - 9002:5432
     networks:
       - skripsi-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
   sharding-thirtyday-db:
     image: postgres:14.7
     restart: unless-stopped
@@ -61,6 +81,11 @@ services:
       - 9003:5432
     networks:
       - skripsi-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
   sharding-ninetyday-db:
     image: postgres:14.7
     restart: unless-stopped
@@ -73,6 +98,11 @@ services:
       - 9004:5432
     networks:
       - skripsi-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     ports:
@@ -103,10 +133,10 @@ services:
       skripsi-network:
         ipv4_address: "172.100.0.200"
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      test: ["CMD", "nc", "-z", "zookeeper", "2181"]
       interval: 10s
-      timeout: 20s
-      retries: 10
+      timeout: 5s
+      retries: 20
   kafka2:
     image: confluentinc/cp-kafka:latest
     ports:
@@ -123,10 +153,10 @@ services:
       skripsi-network:
         ipv4_address: "172.100.0.100"
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      test: ["CMD", "nc", "-z", "zookeeper", "2181"]
       interval: 10s
-      timeout: 20s
-      retries: 10
+      timeout: 5s
+      retries: 20
   kafdrop:
     image: obsidiandynamics/kafdrop
     ports:

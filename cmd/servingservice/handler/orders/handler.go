@@ -24,5 +24,7 @@ func Init(
 		config:  config,
 	}
 
-	e.GET("/v1/orders", h.GetAll, middleware.JWTRestricted())
+	e.GET("/v1/orders-details", h.GetAllDetails, middleware.JWTRestricted())
+	e.GET("/v1/orders", h.GetAllDetails, middleware.JWTRestricted())
+	e.GET("/v1/orders/:id/:", h.GetAllDetails, middleware.JWTRestricted())
 }

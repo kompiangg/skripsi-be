@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (h handler) GetAll(c echo.Context) error {
+func (h handler) GetAllDetails(c echo.Context) error {
 	var req params.FindOrderService
 	err := c.Bind(&req)
 	if err != nil {

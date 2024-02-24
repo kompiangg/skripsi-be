@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS orders (
-  id UUID PRIMARY KEY,
+  id varchar(26) PRIMARY KEY,
   cashier_id UUID,
   store_id varchar(10),
   payment_id varchar(10),
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 CREATE TABLE IF NOT EXISTS order_details (
   id UUID PRIMARY KEY,
-  order_id UUID,
+  order_id varchar(26),
   item_id varchar(10),
   quantity INT,
   unit VARCHAR(255),

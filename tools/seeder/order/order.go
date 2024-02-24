@@ -20,6 +20,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
 	"github.com/volatiletech/null/v9"
@@ -79,7 +80,7 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 		return errors.Wrap(err, constant.SkipErrorParameter)
 	}
 
-	iteration := 1
+	iteration := 3
 	for i := 0; i < iteration; i++ {
 		log.Info().Msgf("Iteration %d", i+1)
 
@@ -94,12 +95,17 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 		orderIDMap := map[string]int{}
 
 		for idx, order := range orders {
-			if _, ok := orderIDMap[order.ID.String()]; !ok {
-				orderIDMap[order.ID.String()] = idx
+			if _, ok := orderIDMap[order.ID]; !ok {
+				orderIDMap[order.ID] = idx
+			}
+
+			orderID, err := ulid.Parse(order.ID)
+			if err != nil {
+				return errors.Wrap(err, constant.SkipErrorParameter)
 			}
 
 			longTermParams = append(longTermParams, params.ServiceInsertOrderToLongTermParam{
-				ID:         order.ID,
+				ID:         orderID,
 				CashierID:  order.CashierID,
 				StoreID:    order.StoreID.String,
 				PaymentID:  order.PaymentID.String,
@@ -110,7 +116,7 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 			})
 
 			shardParams = append(shardParams, params.ServiceInsertOrderToShard{
-				ID:         order.ID,
+				ID:         orderID,
 				CashierID:  order.CashierID,
 				StoreID:    order.StoreID.String,
 				PaymentID:  order.PaymentID.String,
@@ -122,7 +128,7 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 		}
 
 		for _, orderDetail := range detailOrders {
-			idx := orderIDMap[orderDetail.OrderID.String()]
+			idx := orderIDMap[orderDetail.OrderID]
 
 			longTermParams[idx].OrderDetails = append(longTermParams[idx].OrderDetails, params.OrderDetailsLongTerm{
 				ID:       orderDetail.ID,
@@ -214,11 +220,11 @@ func loadOrder(path string, stores []model.Store, storeCashier map[string][]mode
 		randSeconds := r.Int63n(diff)
 		randTime := start.Add(time.Duration(randSeconds) * time.Second)
 
-		uuidExists := map[string]bool{}
+		idExists := map[string]bool{}
 		uuidOrderDetailsExists := map[string]bool{}
 
 		if orderID, ok := idMap[record[2]]; ok {
-			uuidOrderID := uuid.MustParse(orderID)
+			uuidOrderID := ulid.MustParse(orderID)
 			uuidOrderDetailsID := uuid.New()
 
 			for uuidOrderDetailsExists[uuidOrderDetailsID.String()] {
@@ -227,16 +233,25 @@ func loadOrder(path string, stores []model.Store, storeCashier map[string][]mode
 
 			orderDetails = append(orderDetails, model.OrderDetail{
 				ID:       uuidOrderDetailsID,
-				OrderID:  uuidOrderID,
+				OrderID:  uuidOrderID.String(),
 				ItemID:   null.NewString(items[randItem].ID, true),
 				Quantity: null.NewInt64(orderQty, true),
 				Unit:     null.NewString(record[6], true),
 				Price:    decimal.NewFromFloat(orderPrice),
 			})
 		} else {
-			uuidOrderID := uuid.New()
-			for uuidExists[uuidOrderID.String()] {
-				uuidOrderID = uuid.New()
+			entropy := rand.New(rand.NewSource(time.Now().UnixNano()))
+			ms := ulid.Timestamp(randTime)
+			orderID, err := ulid.New(ms, entropy)
+			if err != nil {
+				return nil, nil, errors.Wrap(err, constant.SkipErrorParameter)
+			}
+
+			for idExists[orderID.String()] {
+				orderID, err = ulid.New(ms, entropy)
+				if err != nil {
+					return nil, nil, errors.Wrap(err, constant.SkipErrorParameter)
+				}
 			}
 
 			uuidOrderDetailsID := uuid.New()
@@ -244,10 +259,10 @@ func loadOrder(path string, stores []model.Store, storeCashier map[string][]mode
 				uuidOrderDetailsID = uuid.New()
 			}
 
-			idMap[record[2]] = uuidOrderID.String()
+			idMap[record[2]] = orderID.String()
 
 			orders = append(orders, model.Order{
-				ID:            uuidOrderID,
+				ID:            orderID.String(),
 				CashierID:     cashierStore[randCashier].ID,
 				StoreID:       null.StringFrom(stores[randStore].ID),
 				PaymentID:     null.StringFrom(payments[randPayment].ID),
@@ -262,7 +277,7 @@ func loadOrder(path string, stores []model.Store, storeCashier map[string][]mode
 
 			orderDetails = append(orderDetails, model.OrderDetail{
 				ID:       uuidOrderDetailsID,
-				OrderID:  uuidOrderID,
+				OrderID:  orderID.String(),
 				ItemID:   null.NewString(items[randItem].ID, true),
 				Quantity: null.NewInt64(orderQty, true),
 				Unit:     null.NewString(record[6], true),

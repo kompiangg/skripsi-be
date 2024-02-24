@@ -65,7 +65,7 @@ func (r repository) InsertToLongTermDB(ctx context.Context, tx *sqlx.Tx, orders 
 	INSERT INTO orders (
 		id, cashier_id, store_id, payment_id, customer_id, 
 		total_quantity, total_unit, total_price, total_price_in_usd, currency, usd_rate, created_at
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 `
 
 	stmt, err := tx.PrepareContext(ctx, tx.Rebind(q))

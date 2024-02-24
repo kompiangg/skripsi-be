@@ -61,12 +61,12 @@ func main() {
 
 	_ = task.New(svc)
 
-	paramStart, err := time.Parse("2006-01-02", "2023-10-01")
+	paramStart, err := time.Parse("2006-01-02", "2023-09-02")
 	if err != nil {
 		panic(err)
 	}
 
-	paramEnd, err := time.Parse("2006-01-02", "2023-11-01")
+	paramEnd, err := time.Parse("2006-01-02", "2023-12-31")
 	if err != nil {
 		panic(err)
 	}

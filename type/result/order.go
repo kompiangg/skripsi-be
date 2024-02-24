@@ -1,17 +1,19 @@
 package result
 
 import (
+	"skripsi-be/pkg/errors"
 	"skripsi-be/type/model"
 	"skripsi-be/type/params"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 	"github.com/shopspring/decimal"
 	"github.com/volatiletech/null/v9"
 )
 
 type Order struct {
-	ID              uuid.UUID       `json:"id"`
+	ID              ulid.ULID       `json:"id"`
 	CashierID       uuid.UUID       `json:"cashier_id"`
 	StoreID         null.String     `json:"store_id"`
 	PaymentID       null.String     `json:"payment_id"`
@@ -28,15 +30,20 @@ type Order struct {
 
 type OrderDetail struct {
 	ID       uuid.UUID       `json:"id"`
-	OrderID  uuid.UUID       `json:"order_id"`
+	OrderID  ulid.ULID       `json:"order_id"`
 	ItemID   null.String     `json:"item_id"`
 	Quantity null.Int64      `json:"quantity"`
 	Unit     null.String     `json:"unit"`
 	Price    decimal.Decimal `json:"price"`
 }
 
-func (o *Order) FromModel(orderModel model.Order) {
-	o.ID = orderModel.ID
+func (o *Order) FromModel(orderModel model.Order) error {
+	var err error
+	o.ID, err = ulid.Parse(orderModel.ID)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
 	o.CashierID = orderModel.CashierID
 	o.StoreID = orderModel.StoreID
 	o.PaymentID = orderModel.PaymentID
@@ -53,13 +60,15 @@ func (o *Order) FromModel(orderModel model.Order) {
 	for idx := range o.OrderDetails {
 		o.OrderDetails[idx] = OrderDetail{
 			ID:       orderModel.OrderDetails[idx].ID,
-			OrderID:  orderModel.OrderDetails[idx].OrderID,
+			OrderID:  o.ID,
 			ItemID:   orderModel.OrderDetails[idx].ItemID,
 			Quantity: orderModel.OrderDetails[idx].Quantity,
 			Unit:     orderModel.OrderDetails[idx].Unit,
 			Price:    orderModel.OrderDetails[idx].Price,
 		}
 	}
+
+	return nil
 }
 
 type ServiceIngestOrder struct {

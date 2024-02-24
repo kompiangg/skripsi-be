@@ -8,7 +8,7 @@ import (
 	"skripsi-be/type/result"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 	"github.com/volatiletech/null/v9"
 )
 
@@ -68,12 +68,18 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 				}
 
 				orders := make([]result.Order, 0)
-				orderIDMap := make(map[uuid.UUID]int)
+				orderIDMap := make(map[ulid.ULID]int)
 
 				for idx := range order {
-					if _, ok := orderIDMap[order[idx].OrderID]; !ok {
+					orderID, err := ulid.Parse(order[idx].OrderID)
+					if err != nil {
+						errorChan <- err
+						return
+					}
+
+					if _, ok := orderIDMap[orderID]; !ok {
 						orders = append(orders, result.Order{
-							ID:              order[idx].OrderID,
+							ID:              orderID,
 							CashierID:       order[idx].CashierID,
 							StoreID:         order[idx].StoreID,
 							PaymentID:       order[idx].PaymentID,
@@ -90,18 +96,18 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 
 						orders[len(orders)-1].OrderDetails = append(orders[len(orders)-1].OrderDetails, result.OrderDetail{
 							ID:       order[idx].OrderDetailID,
-							OrderID:  order[idx].OrderID,
+							OrderID:  orderID,
 							ItemID:   order[idx].ItemID,
 							Quantity: order[idx].Quantity,
 							Unit:     order[idx].Unit,
 							Price:    order[idx].Price,
 						})
 
-						orderIDMap[order[idx].OrderID] = len(orders) - 1
+						orderIDMap[orderID] = len(orders) - 1
 					} else {
-						orders[orderIDMap[order[idx].OrderID]].OrderDetails = append(orders[orderIDMap[order[idx].OrderID]].OrderDetails, result.OrderDetail{
+						orders[orderIDMap[orderID]].OrderDetails = append(orders[orderIDMap[orderID]].OrderDetails, result.OrderDetail{
 							ID:       order[idx].OrderDetailID,
-							OrderID:  order[idx].OrderID,
+							OrderID:  orderID,
 							ItemID:   order[idx].ItemID,
 							Quantity: order[idx].Quantity,
 							Unit:     order[idx].Unit,
@@ -139,12 +145,17 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 		}
 
 		orders := make([]result.Order, 0)
-		orderIDMap := make(map[uuid.UUID]int)
+		orderIDMap := make(map[ulid.ULID]int)
 
 		for idx := range order {
-			if _, ok := orderIDMap[order[idx].OrderID]; !ok {
+			orderID, err := ulid.Parse(order[idx].OrderID)
+			if err != nil {
+				return nil, errors.Wrap(err)
+			}
+
+			if _, ok := orderIDMap[orderID]; !ok {
 				orders = append(orders, result.Order{
-					ID:              order[idx].OrderID,
+					ID:              orderID,
 					CashierID:       order[idx].CashierID,
 					StoreID:         order[idx].StoreID,
 					PaymentID:       order[idx].PaymentID,
@@ -161,18 +172,18 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 
 				orders[len(orders)-1].OrderDetails = append(orders[len(orders)-1].OrderDetails, result.OrderDetail{
 					ID:       order[idx].OrderDetailID,
-					OrderID:  order[idx].OrderID,
+					OrderID:  orderID,
 					ItemID:   order[idx].ItemID,
 					Quantity: order[idx].Quantity,
 					Unit:     order[idx].Unit,
 					Price:    order[idx].Price,
 				})
 
-				orderIDMap[order[idx].OrderID] = len(orders) - 1
+				orderIDMap[orderID] = len(orders) - 1
 			} else {
-				orders[orderIDMap[order[idx].OrderID]].OrderDetails = append(orders[orderIDMap[order[idx].OrderID]].OrderDetails, result.OrderDetail{
+				orders[orderIDMap[orderID]].OrderDetails = append(orders[orderIDMap[orderID]].OrderDetails, result.OrderDetail{
 					ID:       order[idx].OrderDetailID,
-					OrderID:  order[idx].OrderID,
+					OrderID:  orderID,
 					ItemID:   order[idx].ItemID,
 					Quantity: order[idx].Quantity,
 					Unit:     order[idx].Unit,
