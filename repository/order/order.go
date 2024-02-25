@@ -12,16 +12,21 @@ import (
 type Repository interface {
 	InsertToShardDB(ctx context.Context, tx *sqlx.Tx, orders []model.Order) error
 	InsertDetailsToShardDB(ctx context.Context, tx *sqlx.Tx, orderDetails []model.OrderDetail) error
-	InsertToLongTermDB(ctx context.Context, tx *sqlx.Tx, orders []model.Order) error
-	InsertDetailsToLongTermDB(ctx context.Context, tx *sqlx.Tx, orderDetails []model.OrderDetail) error
 	DeleteAllData(ctx context.Context, tx *sqlx.Tx) error
 	DeleteOrderDetails(ctx context.Context, tx *sqlx.Tx) error
 	FindAllOnShardDB(ctx context.Context, param params.ShardTimeSeriesWhereQuery) ([]model.Order, error)
 	FindOrderDetailsOnShardDB(ctx context.Context, param params.FindOrderDetailsOnShardRepo) ([]model.OrderDetail, error)
 	FindAllOrderAndDetailsOnShardDB(ctx context.Context, param params.ShardTimeSeriesWhereQuery) ([]model.OrderWithOrderDetails, error)
+	FindOrderByIDOnShardDB(ctx context.Context, shardIdx int, id string) (model.Order, error)
+	FindOrderDetailsByOrderIDOnShardDB(ctx context.Context, shardIdx int, orderID string) ([]model.OrderDetail, error)
+
+	InsertToLongTermDB(ctx context.Context, tx *sqlx.Tx, orders []model.Order) error
+	InsertDetailsToLongTermDB(ctx context.Context, tx *sqlx.Tx, orderDetails []model.OrderDetail) error
 	FindAllOnLongTermDB(ctx context.Context, param params.LongTermWhereQuery) ([]model.Order, error)
 	FindOrderDetailsOnLongTermDB(ctx context.Context, param params.FindOrderDetailsOnLongTermRepo) ([]model.OrderDetail, error)
 	FindAllOrderAndDetailsOnLongTermDB(ctx context.Context, param params.LongTermWhereQuery) ([]model.OrderWithOrderDetails, error)
+	FindOrderByIDOnLongTermDB(ctx context.Context, id string) (model.Order, error)
+	FindOrderDetailsByOrderIDOnLongTermDB(ctx context.Context, orderID string) ([]model.OrderDetail, error)
 }
 
 type Config struct {

@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"encoding/json"
 	"skripsi-be/pkg/errors"
 	"skripsi-be/type/entity"
 
@@ -14,9 +15,20 @@ func GetJWTClaimsFromContext(c echo.Context, ctxKey string) (entity.CustomJWTCla
 		return entity.CustomJWTClaims{}, errors.New("cannot get jwt token from context")
 	}
 
-	claims, ok := token.Claims.(entity.CustomJWTClaims)
+	jwtClaims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return entity.CustomJWTClaims{}, errors.New("cannot get jwt claims from context")
+	}
+
+	marshalled, err := json.Marshal(jwtClaims)
+	if err != nil {
+		return entity.CustomJWTClaims{}, errors.Wrap(err)
+	}
+
+	var claims entity.CustomJWTClaims
+	err = json.Unmarshal(marshalled, &claims)
+	if err != nil {
+		return entity.CustomJWTClaims{}, errors.Wrap(err)
 	}
 
 	return claims, nil

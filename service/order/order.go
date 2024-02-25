@@ -27,6 +27,9 @@ type Service interface {
 	FindOrder(ctx context.Context, param params.FindOrderService) (allOrders []result.Order, err error)
 	IngestOrder(ctx context.Context, param []params.ServiceIngestionOrder) ([]result.ServiceIngestOrder, error)
 	TransformOrder(ctx context.Context, param []params.ServiceTransformOrder) error
+
+	FindBriefInformationOrder(ctx context.Context, param params.FindOrderService) (orders []result.OrderBriefInformation, err error)
+	FindOrderDetails(ctx context.Context, param params.FindOrderDetailsService) (res result.Order, err error)
 }
 
 type Config struct {

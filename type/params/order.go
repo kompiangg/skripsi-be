@@ -235,6 +235,8 @@ func (s ServiceInsertOrdersToLongTermParam) Validate(ctx context.Context) error 
 type FindOrderService struct {
 	StartDate time.Time `query:"start_date"`
 	EndDate   time.Time `query:"end_date"`
+
+	CashierID uuid.NullUUID `json:"-"`
 }
 
 func (s FindOrderService) Validate() error {
@@ -442,4 +444,14 @@ type RepositoryPublishLoadOrderDetailEvent struct {
 	Quantity int64           `json:"quantity"`
 	Unit     string          `json:"unit"`
 	Price    decimal.Decimal `json:"price"`
+}
+
+type FindOrderDetailsService struct {
+	OrderID string `param:"id"`
+}
+
+func (s FindOrderDetailsService) Validate() error {
+	return validation.ValidateStruct(&s,
+		validation.Field(&s.OrderID, validation.Required, validation.NotNil),
+	)
 }

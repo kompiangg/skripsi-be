@@ -32,20 +32,23 @@ func (s service) Login(ctx context.Context, param params.ServiceLogin) (res resu
 	}
 
 	var name string
+	var id string
 
 	cashier, err := s.cashierRepo.FindCashierAccountByID(ctx, account.ID)
 	if errors.Is(err, errors.ErrRecordNotFound) {
-		_, err := s.adminRepo.FindAdminAccountByID(ctx, account.ID)
+		admin, err := s.adminRepo.FindAdminAccountByID(ctx, account.ID)
 		if errors.Is(err, errors.ErrRecordNotFound) {
 			return res, errors.Wrap(errors.ErrAccountNotFound)
 		} else if err != nil {
 			return res, errors.Wrap(err)
 		}
 
+		id = admin.ID.String()
 		res.Role = constant.RoleEnum.Admin
 	} else if err != nil {
 		return res, errors.Wrap(err)
 	} else {
+		id = cashier.ID.String()
 		res.Role = constant.RoleEnum.Cashier
 		name = cashier.Name
 	}
@@ -55,7 +58,7 @@ func (s service) Login(ctx context.Context, param params.ServiceLogin) (res resu
 		Role: res.Role,
 		Name: name,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   account.ID.String(),
+			Subject:   id,
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24 * time.Duration(s.config.JWT.ExpInDay))),
 			IssuedAt:  jwt.NewNumericDate(now),
 		},

@@ -108,3 +108,40 @@ func (s *ServiceIngestOrder) FromParamServiceIngestionOrder(param params.Service
 		}
 	}
 }
+
+type OrderBriefInformation struct {
+	ID              ulid.ULID       `json:"id"`
+	CashierID       uuid.UUID       `json:"cashier_id"`
+	StoreID         null.String     `json:"store_id"`
+	PaymentID       null.String     `json:"payment_id"`
+	CustomerID      null.String     `json:"customer_id"`
+	TotalQuantity   null.Int64      `json:"total_quantity"`
+	TotalUnit       null.Int64      `json:"total_unit"`
+	TotalPrice      decimal.Decimal `json:"total_price"`
+	TotalPriceInUSD decimal.Decimal `json:"total_price_in_usd"`
+	Currency        null.String     `json:"currency"`
+	UsdRate         decimal.Decimal `json:"usd_rate"`
+	CreatedAt       time.Time       `json:"created_at"`
+}
+
+func (o *OrderBriefInformation) FromModel(orderModel model.Order) error {
+	var err error
+	o.ID, err = ulid.Parse(orderModel.ID)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	o.CashierID = orderModel.CashierID
+	o.StoreID = orderModel.StoreID
+	o.PaymentID = orderModel.PaymentID
+	o.CustomerID = orderModel.CustomerID
+	o.TotalQuantity = orderModel.TotalQuantity
+	o.TotalUnit = orderModel.TotalUnit
+	o.TotalPrice = orderModel.TotalPrice
+	o.TotalPriceInUSD = orderModel.TotalPriceInUSD
+	o.Currency = orderModel.Currency
+	o.UsdRate = orderModel.UsdRate
+	o.CreatedAt = orderModel.CreatedAt
+
+	return nil
+}

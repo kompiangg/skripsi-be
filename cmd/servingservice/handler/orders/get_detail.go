@@ -9,17 +9,17 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (h handler) GetAllDetails(c echo.Context) error {
-	var req params.FindOrderService
+func (h handler) GetOrderDetails(c echo.Context) error {
+	var req params.FindOrderDetailsService
 	err := c.Bind(&req)
 	if err != nil {
 		return httpx.WriteErrorResponse(c, errors.Wrap(err), nil)
 	}
 
-	allOrders, err := h.orderService.FindOrder(c.Request().Context(), req)
+	orderDetails, err := h.orderService.FindOrderDetails(c.Request().Context(), req)
 	if err != nil {
 		return httpx.WriteErrorResponse(c, errors.Wrap(err), nil)
 	}
 
-	return httpx.WriteResponse(c, http.StatusOK, allOrders)
+	return httpx.WriteResponse(c, http.StatusOK, orderDetails)
 }

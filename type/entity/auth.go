@@ -9,7 +9,3 @@ type CustomJWTClaims struct {
 	Name string `json:"name"`
 	jwt.RegisteredClaims
 }
-
-func (c CustomJWTClaims) GetRole() (string, error) {
-	return c.Role, nil
-}

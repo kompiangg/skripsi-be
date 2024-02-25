@@ -2,24 +2,30 @@ package order
 
 import (
 	"context"
+	"database/sql"
+	"skripsi-be/pkg/errors"
 	"skripsi-be/type/model"
 	"skripsi-be/type/params"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/go-errors/errors"
 )
 
 // Shard
 func (r repository) FindAllOnShardDB(ctx context.Context, param params.ShardTimeSeriesWhereQuery) ([]model.Order, error) {
 	qBuilder := squirrel.
 		Select("id, cashier_id, store_id, payment_id, customer_id, total_quantity, total_unit, total_price, total_price_in_usd, currency, usd_rate, created_at").
-		From("orders")
+		From("orders").
+		OrderBy("created_at DESC")
 
 	if param.StartDate.Valid && param.EndDate.Valid {
 		qBuilder = qBuilder.Where(squirrel.And{
 			squirrel.GtOrEq{"created_at": param.StartDate.Time},
 			squirrel.LtOrEq{"created_at": param.EndDate.Time},
 		})
+	}
+
+	if param.CashierID.Valid {
+		qBuilder = qBuilder.Where(squirrel.Eq{"cashier_id": param.CashierID})
 	}
 
 	q, args, err := qBuilder.ToSql()
@@ -103,16 +109,74 @@ func (r repository) FindAllOrderAndDetailsOnShardDB(ctx context.Context, param p
 	return orders, nil
 }
 
+func (r repository) FindOrderByIDOnShardDB(ctx context.Context, shardIdx int, id string) (model.Order, error) {
+	q := `
+		SELECT 
+			id, 
+			cashier_id, 
+			store_id, 
+			payment_id, 
+			customer_id, 
+			total_quantity, 
+			total_unit, 
+			total_price, 
+			total_price_in_usd, 
+			currency, 
+			usd_rate, 
+			created_at
+		FROM 
+			orders 
+		WHERE id = ?`
+
+	var order model.Order
+	err := r.longTermDB.GetContext(ctx, &order, r.longTermDB.Rebind(q), id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.Order{}, errors.ErrNotFound
+	} else if err != nil {
+		return model.Order{}, errors.New(err)
+	}
+
+	return order, nil
+}
+
+func (r repository) FindOrderDetailsByOrderIDOnShardDB(ctx context.Context, shardIdx int, orderID string) ([]model.OrderDetail, error) {
+	q := `
+		SELECT 
+			id, 
+			order_id, 
+			item_id, 
+			quantity, 
+			unit, 
+			price
+		FROM 
+			order_details 
+		WHERE order_id = ?
+	`
+
+	var orderDetails []model.OrderDetail
+	err := r.longTermDB.SelectContext(ctx, &orderDetails, r.longTermDB.Rebind(q), orderID)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	return orderDetails, nil
+}
+
 // Long Term
 func (r repository) FindAllOnLongTermDB(ctx context.Context, param params.LongTermWhereQuery) ([]model.Order, error) {
 	qBuilder := squirrel.Select("id, cashier_id, store_id, payment_id, customer_id, total_quantity, total_unit, total_price, total_price_in_usd, currency, usd_rate, created_at").
-		From("orders")
+		From("orders").
+		OrderBy("created_at DESC")
 
 	if param.StartDate.Valid && param.EndDate.Valid {
 		qBuilder = qBuilder.Where(squirrel.And{
 			squirrel.GtOrEq{"created_at": param.StartDate.Time},
 			squirrel.LtOrEq{"created_at": param.EndDate.Time},
 		})
+	}
+
+	if param.CashierID.Valid {
+		qBuilder = qBuilder.Where(squirrel.Eq{"cashier_id": param.CashierID})
 	}
 
 	q, args, err := qBuilder.ToSql()
@@ -194,4 +258,57 @@ func (r repository) FindAllOrderAndDetailsOnLongTermDB(ctx context.Context, para
 	}
 
 	return orders, nil
+}
+
+func (r repository) FindOrderByIDOnLongTermDB(ctx context.Context, id string) (model.Order, error) {
+	q := `
+		SELECT 
+			id, 
+			cashier_id, 
+			store_id, 
+			payment_id, 
+			customer_id, 
+			total_quantity, 
+			total_unit, 
+			total_price, 
+			total_price_in_usd, 
+			currency, 
+			usd_rate, 
+			created_at
+		FROM 
+			orders 
+		WHERE id = ?`
+
+	var order model.Order
+	err := r.longTermDB.GetContext(ctx, &order, r.longTermDB.Rebind(q), id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.Order{}, errors.ErrItemNotFound
+	} else if err != nil {
+		return model.Order{}, errors.New(err)
+	}
+
+	return order, nil
+}
+
+func (r repository) FindOrderDetailsByOrderIDOnLongTermDB(ctx context.Context, orderID string) ([]model.OrderDetail, error) {
+	q := `
+		SELECT 
+			id, 
+			order_id, 
+			item_id, 
+			quantity, 
+			unit, 
+			price
+		FROM 
+			order_details 
+		WHERE order_id = ?
+	`
+
+	var orderDetails []model.OrderDetail
+	err := r.longTermDB.SelectContext(ctx, &orderDetails, r.longTermDB.Rebind(q), orderID)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+
+	return orderDetails, nil
 }

@@ -9,6 +9,7 @@ type ShardTimeSeriesWhereQuery struct {
 	ShardIndex int
 	StartDate  null.Time
 	EndDate    null.Time
+	CashierID  uuid.NullUUID
 }
 
 type FindOrderDetailsOnShardRepo struct {
@@ -19,6 +20,7 @@ type FindOrderDetailsOnShardRepo struct {
 type LongTermWhereQuery struct {
 	StartDate null.Time
 	EndDate   null.Time
+	CashierID uuid.NullUUID
 }
 
 type FindOrderDetailsOnLongTermRepo struct {
