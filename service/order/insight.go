@@ -122,6 +122,7 @@ func (s service) FindInsightBasedOnInterval(ctx context.Context, interval string
 
 		res.Chart = make([]result.GetAggregateOrderChartService, len(dayRanges))
 
+		customerOrderMap := make(map[string]model.GetAggregateOrderResultRepo)
 		for i := range dayRanges {
 			whereQuery, err := s.getShardWhereQuery(dayRanges[i].StartDate, dayRanges[i].EndDate)
 			if err != nil {
@@ -167,7 +168,7 @@ func (s service) FindInsightBasedOnInterval(ctx context.Context, interval string
 					}
 
 					mutex.Lock()
-					customerOrderMap := make(map[string]model.GetAggregateOrderResultRepo)
+
 					for _, v := range aggregateOrderMember {
 						customerOrderMap[v.CustomerID] = model.GetAggregateOrderResultRepo{
 							CustomerID:             v.CustomerID,
@@ -176,19 +177,8 @@ func (s service) FindInsightBasedOnInterval(ctx context.Context, interval string
 							ItemSoldTotalQuantity:  customerOrderMap[v.CustomerID].ItemSoldTotalQuantity + v.ItemSoldTotalQuantity,
 							ItemSoldTotalPrice:     customerOrderMap[v.CustomerID].ItemSoldTotalPrice.Add(v.ItemSoldTotalPrice),
 						}
-					}
 
-					for _, v := range customerOrderMap {
-						if v.CustomerID == "null" {
-							res.TotalNotCustomerOrderQuantity += v.NotMemberOrderQuantity
-						} else {
-							res.TotalCustomerOrderQuantity += v.OrderQuantity
-						}
-
-						res.ItemSoldTotalQuantity += v.ItemSoldTotalQuantity
 						chart.TotalOrderQuantity += v.ItemSoldTotalQuantity
-
-						res.ItemSoldTotalPrice = res.ItemSoldTotalPrice.Add(v.ItemSoldTotalPrice)
 						chart.TotalOrderPrice = chart.TotalOrderPrice.Add(v.ItemSoldTotalPrice)
 					}
 
@@ -215,8 +205,17 @@ func (s service) FindInsightBasedOnInterval(ctx context.Context, interval string
 			}
 
 			res.Chart[i] = chart
-			fmt.Println("startDate", dayRanges[i].StartDate)
-			fmt.Println("endDate", dayRanges[i].EndDate)
+		}
+
+		for _, v := range customerOrderMap {
+			if v.CustomerID == "null" {
+				res.TotalNotCustomerOrderQuantity += v.NotMemberOrderQuantity
+			} else {
+				res.TotalCustomerOrderQuantity += v.OrderQuantity
+			}
+
+			res.ItemSoldTotalQuantity += v.ItemSoldTotalQuantity
+			res.ItemSoldTotalPrice = res.ItemSoldTotalPrice.Add(v.ItemSoldTotalPrice)
 		}
 	} else {
 		topSellingProducts, err := s.orderRepo.GetAggregateTopSellingProductOnLongTermDB(ctx, globalStartRange, globalEndRange)
@@ -236,6 +235,7 @@ func (s service) FindInsightBasedOnInterval(ctx context.Context, interval string
 			})
 		}
 
+		customerOrderMap := make(map[string]model.GetAggregateOrderResultRepo)
 		for i := range dayRanges {
 			chart := result.GetAggregateOrderChartService{
 				Date: dayRanges[i].EndDate,
@@ -246,7 +246,6 @@ func (s service) FindInsightBasedOnInterval(ctx context.Context, interval string
 				return res, errors.Wrap(err)
 			}
 
-			customerOrderMap := make(map[string]model.GetAggregateOrderResultRepo)
 			for _, v := range aggregateOrderMember {
 				customerOrderMap[v.CustomerID] = model.GetAggregateOrderResultRepo{
 					CustomerID:             v.CustomerID,
@@ -255,23 +254,23 @@ func (s service) FindInsightBasedOnInterval(ctx context.Context, interval string
 					ItemSoldTotalQuantity:  customerOrderMap[v.CustomerID].ItemSoldTotalQuantity + v.ItemSoldTotalQuantity,
 					ItemSoldTotalPrice:     customerOrderMap[v.CustomerID].ItemSoldTotalPrice.Add(v.ItemSoldTotalPrice),
 				}
-			}
 
-			for _, v := range customerOrderMap {
-				if v.CustomerID == "null" {
-					res.TotalNotCustomerOrderQuantity += v.NotMemberOrderQuantity
-				} else {
-					res.TotalCustomerOrderQuantity += v.OrderQuantity
-				}
-
-				res.ItemSoldTotalQuantity += v.ItemSoldTotalQuantity
 				chart.TotalOrderQuantity += v.ItemSoldTotalQuantity
-
-				res.ItemSoldTotalPrice = res.ItemSoldTotalPrice.Add(v.ItemSoldTotalPrice)
 				chart.TotalOrderPrice = chart.TotalOrderPrice.Add(v.ItemSoldTotalPrice)
 			}
 
 			res.Chart = append(res.Chart, chart)
+		}
+
+		for _, v := range customerOrderMap {
+			if v.CustomerID == "null" {
+				res.TotalNotCustomerOrderQuantity += v.NotMemberOrderQuantity
+			} else {
+				res.TotalCustomerOrderQuantity += v.OrderQuantity
+			}
+
+			res.ItemSoldTotalQuantity += v.ItemSoldTotalQuantity
+			res.ItemSoldTotalPrice = res.ItemSoldTotalPrice.Add(v.ItemSoldTotalPrice)
 		}
 	}
 
