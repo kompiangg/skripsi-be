@@ -61,6 +61,7 @@ func main() {
 
 	_ = task.New(svc)
 
+	// Benchmarking
 	paramStart, err := time.Parse("2006-01-02", "2023-09-02")
 	if err != nil {
 		panic(err)

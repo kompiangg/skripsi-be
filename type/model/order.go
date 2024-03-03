@@ -15,7 +15,6 @@ type Order struct {
 	PaymentID       null.String     `db:"payment_id"`
 	CustomerID      null.String     `db:"customer_id"`
 	TotalQuantity   null.Int64      `db:"total_quantity"`
-	TotalUnit       null.Int64      `db:"total_unit"`
 	TotalPrice      decimal.Decimal `db:"total_price"`
 	TotalPriceInUSD decimal.Decimal `db:"total_price_in_usd"`
 	Currency        null.String     `db:"currency"`
@@ -41,7 +40,6 @@ type OrderWithOrderDetails struct {
 	PaymentID       null.String     `db:"payment_id"`
 	CustomerID      null.String     `db:"customer_id"`
 	TotalQuantity   null.Int64      `db:"total_quantity"`
-	TotalUnit       null.Int64      `db:"total_unit"`
 	TotalPrice      decimal.Decimal `db:"total_price"`
 	TotalPriceInUSD decimal.Decimal `db:"total_price_in_usd"`
 	Currency        null.String     `db:"currency"`
@@ -51,4 +49,17 @@ type OrderWithOrderDetails struct {
 	Quantity        null.Int64      `db:"quantity"`
 	Unit            null.String     `db:"unit"`
 	Price           decimal.Decimal `db:"price"`
+}
+
+type GetAggregateTopSellingProductResultRepo struct {
+	ItemID                string `db:"item_id"`
+	ItemSoldTotalQuantity int64  `db:"item_sold_total_quantity"`
+}
+
+type GetAggregateOrderResultRepo struct {
+	CustomerID             string          `db:"customer_id"`
+	OrderQuantity          int64           `db:"order_quantity"`
+	NotMemberOrderQuantity int64           `db:"not_member_order_quantity"`
+	ItemSoldTotalQuantity  int64           `db:"item_sold_total_quantity"`
+	ItemSoldTotalPrice     decimal.Decimal `db:"item_sold_total_price"`
 }

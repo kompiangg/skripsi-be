@@ -9,6 +9,7 @@ import (
 
 type Repository interface {
 	FindByID(ctx context.Context, id string) (model.Customer, error)
+	FindByIDLikeOrNameLikeOrContactLike(ctx context.Context, req string) ([]model.Customer, error)
 }
 
 type Config struct {

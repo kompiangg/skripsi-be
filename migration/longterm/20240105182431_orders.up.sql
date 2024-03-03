@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS orders (
   payment_id varchar(10),
   customer_id varchar(10),
   total_quantity INT,
-  total_unit VARCHAR(255),
   total_price DECIMAL(15,5),
   total_price_in_usd DECIMAL(15,5),
   currency VARCHAR(3),

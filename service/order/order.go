@@ -30,6 +30,8 @@ type Service interface {
 
 	FindBriefInformationOrder(ctx context.Context, param params.FindOrderService) (orders []result.OrderBriefInformation, err error)
 	FindOrderDetails(ctx context.Context, param params.FindOrderDetailsService) (res result.Order, err error)
+
+	FindInsightBasedOnInterval(ctx context.Context, interval string, offset int) (result.GetAggregateOrderService, error)
 }
 
 type Config struct {

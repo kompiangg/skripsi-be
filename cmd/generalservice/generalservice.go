@@ -1,4 +1,4 @@
-package orderservice
+package generalservice
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"skripsi-be/pkg/http"
 	"skripsi-be/service"
 
-	"skripsi-be/cmd/orderservice/handler"
-	inmiddleware "skripsi-be/cmd/orderservice/middleware"
+	"skripsi-be/cmd/generalservice/handler"
+	inmiddleware "skripsi-be/cmd/middleware"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -17,7 +17,7 @@ import (
 
 func Init(
 	service service.Service,
-	config config.OrderService,
+	config config.GeneralService,
 	mw inmiddleware.Middleware,
 ) error {
 	e := echo.New()

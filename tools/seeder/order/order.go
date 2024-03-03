@@ -105,22 +105,22 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 			}
 
 			longTermParams = append(longTermParams, params.ServiceInsertOrderToLongTermParam{
-				ID:         orderID,
+				ID:         orderID.String(),
 				CashierID:  order.CashierID,
 				StoreID:    order.StoreID.String,
 				PaymentID:  order.PaymentID.String,
-				CustomerID: order.CustomerID.String,
+				CustomerID: order.CustomerID,
 				Currency:   order.Currency.String,
 				UsdRate:    order.UsdRate,
 				CreatedAt:  order.CreatedAt,
 			})
 
 			shardParams = append(shardParams, params.ServiceInsertOrderToShard{
-				ID:         orderID,
+				ID:         orderID.String(),
 				CashierID:  order.CashierID,
 				StoreID:    order.StoreID.String,
 				PaymentID:  order.PaymentID.String,
-				CustomerID: order.CustomerID.String,
+				CustomerID: order.CustomerID,
 				Currency:   order.Currency.String,
 				UsdRate:    order.UsdRate,
 				CreatedAt:  order.CreatedAt,
@@ -268,7 +268,6 @@ func loadOrder(path string, stores []model.Store, storeCashier map[string][]mode
 				PaymentID:     null.StringFrom(payments[randPayment].ID),
 				CustomerID:    null.StringFrom(customers[randCustomer].ID),
 				TotalQuantity: null.NewInt64(0, true),
-				TotalUnit:     null.Int64From(0),
 				TotalPrice:    decimal.NewFromInt(0),
 				Currency:      null.StringFrom("AFN"),
 				UsdRate:       usdRate,

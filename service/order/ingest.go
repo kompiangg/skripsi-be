@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"skripsi-be/pkg/errors"
+	"skripsi-be/type/model"
 	"skripsi-be/type/params"
 	"skripsi-be/type/result"
 
@@ -16,7 +17,7 @@ func (s service) IngestOrder(ctx context.Context, param []params.ServiceIngestio
 	storeIDMap := make(map[string]bool)
 	cashierIDMap := make(map[uuid.UUID]bool)
 	customerIDMap := make(map[string]bool)
-	itemIDMap := make(map[string]bool)
+	itemIDMap := make(map[string]model.Item)
 
 	for i, v := range param {
 		err := v.Validate()
@@ -24,7 +25,7 @@ func (s service) IngestOrder(ctx context.Context, param []params.ServiceIngestio
 			return nil, errors.Wrap(err)
 		}
 
-		if v.CreatedAt.After(s.config.Date.Now()) {
+		if v.PaymentDate.After(s.config.Date.Now()) {
 			return nil, errors.Wrap(errors.ErrDataParamMustNotAFterCurrentTime)
 		}
 
@@ -56,29 +57,40 @@ func (s service) IngestOrder(ctx context.Context, param []params.ServiceIngestio
 			return nil, errors.Wrap(errors.ErrCustomerCashierNotMatch)
 		}
 
-		if _, ok := customerIDMap[v.CustomerID]; !ok {
-			_, err = s.customerRepo.FindByID(ctx, v.CustomerID)
-			if errors.Is(err, errors.ErrRecordNotFound) {
-				return nil, errors.Wrap(errors.ErrCustomerNotFound)
-			} else if err != nil {
-				return nil, errors.Wrap(err)
-			}
+		if v.CustomerID.Valid {
+			if _, ok := customerIDMap[v.CustomerID.String]; !ok {
+				_, err = s.customerRepo.FindByID(ctx, v.CustomerID.String)
+				if errors.Is(err, errors.ErrRecordNotFound) {
+					return nil, errors.Wrap(errors.ErrCustomerNotFound)
+				} else if err != nil {
+					return nil, errors.Wrap(err)
+				}
 
-			customerIDMap[v.CustomerID] = true
+				customerIDMap[v.CustomerID.String] = true
+			}
 		}
 
-		for _, item := range v.OrderDetails {
+		for idx, item := range v.OrderDetails {
 			if _, ok := itemIDMap[item.ItemID]; !ok {
-				_, err = s.itemRepo.FindByID(ctx, item.ItemID)
+				itemData, err := s.itemRepo.FindByID(ctx, item.ItemID)
 				if errors.Is(err, errors.ErrRecordNotFound) {
 					return nil, errors.Wrap(errors.ErrItemNotFound)
 				} else if err != nil {
 					return nil, errors.Wrap(err)
 				}
+
+				v.OrderDetails[idx].Price = itemData.Price
+				v.OrderDetails[idx].Unit = itemData.Unit
+				itemIDMap[item.ItemID] = itemData
 			}
 		}
 
 		repoParam[i] = v.ToRepositoryPublishTransformOrderEvent()
+
+		for _, item := range v.OrderDetails {
+			repoParam[i].OrderDetails = append(repoParam[i].OrderDetails, item.ToRepositoryPublishTransformOrderDetailEvent(itemIDMap[item.ItemID]))
+		}
+
 		res[i].FromParamServiceIngestionOrder(v, repoParam[i].ID)
 	}
 

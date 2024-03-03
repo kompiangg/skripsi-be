@@ -2,6 +2,7 @@ package params
 
 import (
 	"context"
+	"math/rand"
 	"skripsi-be/type/model"
 	"time"
 
@@ -14,13 +15,12 @@ import (
 )
 
 type ServiceInsertOrderToShard struct {
-	ID              ulid.ULID           `json:"id"`
+	ID              string              `json:"id"`
 	CashierID       uuid.UUID           `json:"cashier_id"`
 	StoreID         string              `json:"store_id"`
 	PaymentID       string              `json:"payment_id"`
-	CustomerID      string              `json:"customer_id"`
+	CustomerID      null.String         `json:"customer_id"`
 	TotalQuantity   int64               `json:"total_quantity"`
-	TotalUnit       int64               `json:"total_unit"`
 	Currency        string              `json:"currency"`
 	TotalPrice      decimal.Decimal     `json:"total_price"`
 	TotalPriceInUSD decimal.Decimal     `json:"total_price_in_usd"`
@@ -39,25 +39,22 @@ type OrderDetailsShard struct {
 
 func (s ServiceInsertOrderToShard) ToOrderModelInSeeder() model.Order {
 	totalQuantity := null.Int64From(0)
-	totalUnit := null.Int64From(0)
 	totalPrice := decimal.NewFromInt(0)
 
 	for _, orderDetail := range s.OrderDetails {
 		totalQuantity = null.NewInt64(totalQuantity.Int64+orderDetail.Quantity, true)
-		totalUnit = null.NewInt64(totalUnit.Int64+orderDetail.Quantity, true)
 		totalPrice = totalPrice.Add(orderDetail.Price)
 	}
 
 	return model.Order{
-		ID:              s.ID.String(),
+		ID:              s.ID,
 		CashierID:       s.CashierID,
 		StoreID:         null.StringFrom(s.StoreID),
 		PaymentID:       null.StringFrom(s.PaymentID),
 		TotalQuantity:   totalQuantity,
-		TotalUnit:       totalUnit,
 		TotalPrice:      totalPrice,
 		TotalPriceInUSD: totalPrice.Mul(s.UsdRate),
-		CustomerID:      null.StringFrom(s.CustomerID),
+		CustomerID:      s.CustomerID,
 		Currency:        null.StringFrom(s.Currency),
 		UsdRate:         s.UsdRate,
 		CreatedAt:       s.CreatedAt,
@@ -67,15 +64,14 @@ func (s ServiceInsertOrderToShard) ToOrderModelInSeeder() model.Order {
 
 func (s ServiceInsertOrderToShard) ToOrderModel() model.Order {
 	return model.Order{
-		ID:              s.ID.String(),
+		ID:              s.ID,
 		CashierID:       s.CashierID,
 		StoreID:         null.StringFrom(s.StoreID),
 		PaymentID:       null.StringFrom(s.PaymentID),
 		TotalQuantity:   null.NewInt64(s.TotalQuantity, true),
-		TotalUnit:       null.Int64From(s.TotalUnit),
 		TotalPrice:      s.TotalPrice,
 		TotalPriceInUSD: s.TotalPriceInUSD,
-		CustomerID:      null.StringFrom(s.CustomerID),
+		CustomerID:      s.CustomerID,
 		Currency:        null.StringFrom(s.Currency),
 		UsdRate:         s.UsdRate,
 		CreatedAt:       s.CreatedAt,
@@ -89,7 +85,7 @@ func (s ServiceInsertOrderToShard) ToOrderDetailModel() []model.OrderDetail {
 	for _, orderDetail := range s.OrderDetails {
 		orderDetails = append(orderDetails, model.OrderDetail{
 			ID:       orderDetail.ID,
-			OrderID:  s.ID.String(),
+			OrderID:  s.ID,
 			ItemID:   null.StringFrom(orderDetail.ItemID),
 			Quantity: null.NewInt64(orderDetail.Quantity, true),
 			Unit:     null.StringFrom(orderDetail.Unit),
@@ -109,7 +105,6 @@ func (s ServiceInsertOrdersToShardParam) Validate(ctx context.Context) error {
 			validation.Field(&order.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
 			validation.Field(&order.StoreID, validation.Required, validation.NotNil),
 			validation.Field(&order.PaymentID, validation.Required, validation.NotNil),
-			validation.Field(&order.CustomerID, validation.Required, validation.NotNil),
 			validation.Field(&order.Currency, validation.Required, validation.NotNil),
 			validation.Field(&order.UsdRate, validation.Required, validation.NotNil),
 			validation.Field(&order.CreatedAt, validation.Required, validation.NotNil),
@@ -124,13 +119,12 @@ func (s ServiceInsertOrdersToShardParam) Validate(ctx context.Context) error {
 }
 
 type ServiceInsertOrderToLongTermParam struct {
-	ID              ulid.ULID              `json:"id"`
+	ID              string                 `json:"id"`
 	CashierID       uuid.UUID              `json:"cashier_id"`
 	StoreID         string                 `json:"store_id"`
 	PaymentID       string                 `json:"payment_id"`
-	CustomerID      string                 `json:"customer_id"`
+	CustomerID      null.String            `json:"customer_id"`
 	TotalQuantity   int64                  `json:"total_quantity"`
-	TotalUnit       int64                  `json:"total_unit"`
 	Currency        string                 `json:"currency"`
 	TotalPrice      decimal.Decimal        `json:"total_price"`
 	TotalPriceInUSD decimal.Decimal        `json:"total_price_in_usd"`
@@ -149,24 +143,21 @@ type OrderDetailsLongTerm struct {
 
 func (s ServiceInsertOrderToLongTermParam) ToOrderModelInSeeder() model.Order {
 	totalQuantity := null.Int64From(0)
-	totalUnit := null.Int64From(0)
 	totalPrice := decimal.NewFromInt(0)
 
 	for _, orderDetail := range s.OrderDetails {
 		totalQuantity = null.NewInt64(totalQuantity.Int64+orderDetail.Quantity, true)
-		totalUnit = null.NewInt64(totalUnit.Int64+orderDetail.Quantity, true)
 		totalPrice = totalPrice.Add(orderDetail.Price)
 	}
 
 	return model.Order{
-		ID:              s.ID.String(),
+		ID:              s.ID,
 		CashierID:       s.CashierID,
 		StoreID:         null.StringFrom(s.StoreID),
 		PaymentID:       null.StringFrom(s.PaymentID),
-		CustomerID:      null.StringFrom(s.CustomerID),
+		CustomerID:      s.CustomerID,
 		Currency:        null.StringFrom(s.Currency),
 		TotalQuantity:   totalQuantity,
-		TotalUnit:       totalUnit,
 		TotalPrice:      totalPrice,
 		TotalPriceInUSD: totalPrice.Mul(s.UsdRate),
 		UsdRate:         s.UsdRate,
@@ -177,14 +168,13 @@ func (s ServiceInsertOrderToLongTermParam) ToOrderModelInSeeder() model.Order {
 
 func (s ServiceInsertOrderToLongTermParam) ToOrderModel() model.Order {
 	return model.Order{
-		ID:              s.ID.String(),
+		ID:              s.ID,
 		CashierID:       s.CashierID,
 		StoreID:         null.StringFrom(s.StoreID),
 		PaymentID:       null.StringFrom(s.PaymentID),
-		CustomerID:      null.StringFrom(s.CustomerID),
+		CustomerID:      s.CustomerID,
 		Currency:        null.StringFrom(s.Currency),
 		TotalQuantity:   null.Int64From(s.TotalQuantity),
-		TotalUnit:       null.Int64From(s.TotalUnit),
 		TotalPrice:      s.TotalPrice,
 		TotalPriceInUSD: s.TotalPriceInUSD,
 		UsdRate:         s.UsdRate,
@@ -198,7 +188,7 @@ func (s ServiceInsertOrderToLongTermParam) ToOrderDetailModel() []model.OrderDet
 	for _, orderDetail := range s.OrderDetails {
 		orderDetails = append(orderDetails, model.OrderDetail{
 			ID:       orderDetail.ID,
-			OrderID:  s.ID.String(),
+			OrderID:  s.ID,
 			ItemID:   null.StringFrom(orderDetail.ItemID),
 			Quantity: null.NewInt64(orderDetail.Quantity, true),
 			Unit:     null.StringFrom(orderDetail.Unit),
@@ -218,7 +208,6 @@ func (s ServiceInsertOrdersToLongTermParam) Validate(ctx context.Context) error 
 			validation.Field(&order.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
 			validation.Field(&order.StoreID, validation.Required, validation.NotNil),
 			validation.Field(&order.PaymentID, validation.Required, validation.NotNil),
-			validation.Field(&order.CustomerID, validation.Required, validation.NotNil),
 			validation.Field(&order.Currency, validation.Required, validation.NotNil),
 			validation.Field(&order.UsdRate, validation.Required, validation.NotNil),
 			validation.Field(&order.CreatedAt, validation.Required, validation.NotNil),
@@ -249,9 +238,9 @@ func (s FindOrderService) Validate() error {
 type ServiceIngestionOrder struct {
 	StoreID      string                        `json:"store_id"`
 	PaymentID    string                        `json:"payment_id"`
-	CustomerID   string                        `json:"customer_id"`
+	CustomerID   null.String                   `json:"customer_id"`
 	Currency     string                        `json:"currency"`
-	CreatedAt    time.Time                     `json:"created_at"`
+	PaymentDate  time.Time                     `json:"payment_date"`
 	OrderDetails []ServiceIngestionOrderDetail `json:"order_details"`
 
 	CashierID uuid.UUID `json:"-"`
@@ -260,8 +249,8 @@ type ServiceIngestionOrder struct {
 type ServiceIngestionOrderDetail struct {
 	ItemID   string          `json:"item_id"`
 	Quantity int64           `json:"quantity"`
-	Unit     string          `json:"unit"`
 	Price    decimal.Decimal `json:"price"`
+	Unit     string          `json:"unit"`
 }
 
 func (s ServiceIngestionOrder) Validate() error {
@@ -269,9 +258,8 @@ func (s ServiceIngestionOrder) Validate() error {
 		validation.Field(&s.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
 		validation.Field(&s.StoreID, validation.Required, validation.NotNil),
 		validation.Field(&s.PaymentID, validation.Required, validation.NotNil),
-		validation.Field(&s.CustomerID, validation.Required, validation.NotNil),
 		validation.Field(&s.Currency, validation.Required, validation.NotNil),
-		validation.Field(&s.CreatedAt, validation.Required, validation.NotNil),
+		validation.Field(&s.PaymentDate, validation.Required, validation.NotNil),
 		validation.Field(&s.OrderDetails, validation.Required, validation.NotNil, validation.Length(1, 0)),
 	)
 	if err != nil {
@@ -282,8 +270,6 @@ func (s ServiceIngestionOrder) Validate() error {
 		err := validation.ValidateStruct(&orderDetail,
 			validation.Field(&orderDetail.ItemID, validation.Required, validation.NotNil),
 			validation.Field(&orderDetail.Quantity, validation.Required, validation.NotNil, validation.NotIn(0)),
-			validation.Field(&orderDetail.Unit, validation.Required, validation.NotNil, validation.NotIn(0)),
-			validation.Field(&orderDetail.Price, validation.Required, validation.NotNil, validation.NotIn(0)),
 		)
 		if err != nil {
 			return err
@@ -294,30 +280,31 @@ func (s ServiceIngestionOrder) Validate() error {
 }
 
 func (s ServiceIngestionOrder) ToRepositoryPublishTransformOrderEvent() RepositoryPublishTransformOrderEvent {
+	id, err := ulid.New(uint64(s.PaymentDate.Unix()), rand.New(rand.NewSource(time.Now().Unix())))
+	if err != nil {
+		panic(err)
+	}
+
 	res := RepositoryPublishTransformOrderEvent{
-		ID:           uuid.New(),
+		ID:           id.String(),
 		CashierID:    s.CashierID,
 		StoreID:      s.StoreID,
 		PaymentID:    s.PaymentID,
 		CustomerID:   s.CustomerID,
 		Currency:     s.Currency,
-		CreatedAt:    s.CreatedAt,
-		OrderDetails: []RepositoryPublishTransformOrderDetailEvent{},
-	}
-
-	for _, orderDetail := range s.OrderDetails {
-		res.OrderDetails = append(res.OrderDetails, RepositoryPublishTransformOrderDetailEvent(orderDetail))
+		CreatedAt:    s.PaymentDate,
+		OrderDetails: make([]RepositoryPublishTransformOrderDetailEvent, 0),
 	}
 
 	return res
 }
 
 type RepositoryPublishTransformOrderEvent struct {
-	ID           uuid.UUID                                    `json:"id"`
+	ID           string                                       `json:"id"`
 	CashierID    uuid.UUID                                    `json:"cashier_id"`
 	StoreID      string                                       `json:"store_id"`
 	PaymentID    string                                       `json:"payment_id"`
-	CustomerID   string                                       `json:"customer_id"`
+	CustomerID   null.String                                  `json:"customer_id"`
 	Currency     string                                       `json:"currency"`
 	CreatedAt    time.Time                                    `json:"created_at"`
 	OrderDetails []RepositoryPublishTransformOrderDetailEvent `json:"order_details"`
@@ -330,12 +317,21 @@ type RepositoryPublishTransformOrderDetailEvent struct {
 	Price    decimal.Decimal `json:"price"`
 }
 
+func (s ServiceIngestionOrderDetail) ToRepositoryPublishTransformOrderDetailEvent(item model.Item) RepositoryPublishTransformOrderDetailEvent {
+	return RepositoryPublishTransformOrderDetailEvent{
+		ItemID:   s.ItemID,
+		Quantity: s.Quantity,
+		Unit:     s.Unit,
+		Price:    s.Price,
+	}
+}
+
 type ServiceTransformOrder struct {
-	ID           uuid.UUID                     `json:"id"`
+	ID           string                        `json:"id"`
 	CashierID    uuid.UUID                     `json:"cashier_id"`
 	StoreID      string                        `json:"store_id"`
 	PaymentID    string                        `json:"payment_id"`
-	CustomerID   string                        `json:"customer_id"`
+	CustomerID   null.String                   `json:"customer_id"`
 	Currency     string                        `json:"currency"`
 	CreatedAt    time.Time                     `json:"created_at"`
 	OrderDetails []ServiceTransformOrderDetail `json:"order_details"`
@@ -350,11 +346,9 @@ type ServiceTransformOrderDetail struct {
 
 func (s ServiceTransformOrder) Validate() error {
 	err := validation.ValidateStruct(&s,
-		validation.Field(&s.ID, validation.Required, validation.NotNil, is.UUIDv4),
 		validation.Field(&s.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
 		validation.Field(&s.StoreID, validation.Required, validation.NotNil),
 		validation.Field(&s.PaymentID, validation.Required, validation.NotNil),
-		validation.Field(&s.CustomerID, validation.Required, validation.NotNil),
 		validation.Field(&s.Currency, validation.Required, validation.NotNil),
 		validation.Field(&s.CreatedAt, validation.Required, validation.NotNil),
 		validation.Field(&s.OrderDetails, validation.Required, validation.NotNil, validation.Length(1, 0)),
@@ -367,8 +361,6 @@ func (s ServiceTransformOrder) Validate() error {
 		err := validation.ValidateStruct(&orderDetail,
 			validation.Field(&orderDetail.ItemID, validation.Required, validation.NotNil),
 			validation.Field(&orderDetail.Quantity, validation.Required, validation.NotNil, validation.NotIn(0)),
-			validation.Field(&orderDetail.Unit, validation.Required, validation.NotNil, validation.NotIn(0)),
-			validation.Field(&orderDetail.Price, validation.Required, validation.NotNil, validation.NotIn(0)),
 		)
 		if err != nil {
 			return err
@@ -380,12 +372,10 @@ func (s ServiceTransformOrder) Validate() error {
 
 func (s ServiceTransformOrder) TransformOrder(usdRate decimal.Decimal) RepositoryPublishLoadOrderEvent {
 	var totalQuantity int64
-	var totalUnit int64
 	totalPrice := decimal.NewFromInt(0)
 
 	for _, orderDetail := range s.OrderDetails {
 		totalQuantity += orderDetail.Quantity
-		totalUnit += orderDetail.Quantity
 		totalPrice = totalPrice.Add(orderDetail.Price)
 	}
 
@@ -397,9 +387,8 @@ func (s ServiceTransformOrder) TransformOrder(usdRate decimal.Decimal) Repositor
 		CustomerID:      s.CustomerID,
 		Currency:        s.Currency,
 		TotalQuantity:   totalQuantity,
-		TotalUnit:       totalUnit,
 		TotalPrice:      totalPrice,
-		TotalPriceInUSD: totalPrice.Mul(usdRate),
+		TotalPriceInUSD: totalPrice.Div(usdRate),
 		UsdRate:         usdRate,
 		CreatedAt:       s.CreatedAt,
 		OrderDetails:    []RepositoryPublishLoadOrderDetailEvent{},
@@ -423,13 +412,12 @@ func (s ServiceTransformOrderDetail) toRepositoryPublishLoadOrderDetailEvent() R
 }
 
 type RepositoryPublishLoadOrderEvent struct {
-	ID              uuid.UUID                               `json:"id"`
+	ID              string                                  `json:"id"`
 	CashierID       uuid.UUID                               `json:"cashier_id"`
 	StoreID         string                                  `json:"store_id"`
 	PaymentID       string                                  `json:"payment_id"`
-	CustomerID      string                                  `json:"customer_id"`
+	CustomerID      null.String                             `json:"customer_id"`
 	TotalQuantity   int64                                   `json:"total_quantity"`
-	TotalUnit       int64                                   `json:"total_unit"`
 	Currency        string                                  `json:"currency"`
 	TotalPrice      decimal.Decimal                         `json:"total_price"`
 	TotalPriceInUSD decimal.Decimal                         `json:"total_price_in_usd"`

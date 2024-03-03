@@ -1,13 +1,13 @@
 package config
 
 type Microservice struct {
-	OrderService     OrderService     `yaml:"OrderService"`
+	GeneralService   GeneralService   `yaml:"GeneralService"`
 	AuthService      AuthService      `yaml:"AuthService"`
 	IngestionService IngestionService `yaml:"IngestionService"`
 	ServingService   ServingService   `yaml:"ServingService"`
 }
 
-type OrderService HTTPServer
+type GeneralService HTTPServer
 type AuthService HTTPServer
 type IngestionService HTTPServer
 type ServingService HTTPServer

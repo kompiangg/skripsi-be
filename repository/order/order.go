@@ -5,6 +5,7 @@ import (
 	"skripsi-be/config"
 	"skripsi-be/type/model"
 	"skripsi-be/type/params"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -27,6 +28,11 @@ type Repository interface {
 	FindAllOrderAndDetailsOnLongTermDB(ctx context.Context, param params.LongTermWhereQuery) ([]model.OrderWithOrderDetails, error)
 	FindOrderByIDOnLongTermDB(ctx context.Context, id string) (model.Order, error)
 	FindOrderDetailsByOrderIDOnLongTermDB(ctx context.Context, orderID string) ([]model.OrderDetail, error)
+
+	GetAggregateTopSellingProductOnLongTermDB(ctx context.Context, startDate time.Time, endDate time.Time) ([]model.GetAggregateTopSellingProductResultRepo, error)
+	GetAggregateOrderOnLongTermDB(ctx context.Context, startDate time.Time, endDate time.Time) ([]model.GetAggregateOrderResultRepo, error)
+	GetAggregateTopSellingProductOnShardDB(ctx context.Context, dbIdx int, startDate time.Time, endDate time.Time) ([]model.GetAggregateTopSellingProductResultRepo, error)
+	GetAggregateOrderOnShardDB(ctx context.Context, dbIdx int, startDate time.Time, endDate time.Time) ([]model.GetAggregateOrderResultRepo, error)
 }
 
 type Config struct {

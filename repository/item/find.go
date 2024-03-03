@@ -27,3 +27,22 @@ func (r repository) FindByID(ctx context.Context, id string) (model.Item, error)
 
 	return item, nil
 }
+
+func (r repository) FindLikeNameOrID(ctx context.Context, nameOrID string) ([]model.Item, error) {
+	query := `
+		SELECT 
+			id, "name", "desc", price, origin_country, supplier, unit, created_at
+		FROM 
+			items
+		WHERE
+			"name" LIKE ? OR id LIKE ?;
+	`
+
+	var items []model.Item
+	err := r.generalDB.SelectContext(ctx, &items, r.generalDB.Rebind(query), "%"+nameOrID+"%", "%"+nameOrID+"%")
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}

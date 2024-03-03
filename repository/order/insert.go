@@ -12,8 +12,8 @@ func (r repository) InsertToShardDB(ctx context.Context, tx *sqlx.Tx, orders []m
 	q := `
 		INSERT INTO orders (
 			id, cashier_id, store_id, payment_id, customer_id, 
-			total_quantity, total_unit, total_price, total_price_in_usd, currency, usd_rate, created_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			total_quantity, total_price, total_price_in_usd, currency, usd_rate, created_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	stmt, err := tx.PrepareContext(ctx, tx.Rebind(q))
@@ -25,7 +25,7 @@ func (r repository) InsertToShardDB(ctx context.Context, tx *sqlx.Tx, orders []m
 	for _, order := range orders {
 		_, err = stmt.ExecContext(ctx,
 			order.ID, order.CashierID, order.StoreID, order.PaymentID,
-			order.CustomerID, order.TotalQuantity, order.TotalUnit, order.TotalPrice, order.TotalPriceInUSD, order.Currency,
+			order.CustomerID, order.TotalQuantity, order.TotalPrice, order.TotalPriceInUSD, order.Currency,
 			order.UsdRate, order.CreatedAt)
 		if err != nil {
 			return errors.New(err)
@@ -64,8 +64,8 @@ func (r repository) InsertToLongTermDB(ctx context.Context, tx *sqlx.Tx, orders 
 	q := `
 	INSERT INTO orders (
 		id, cashier_id, store_id, payment_id, customer_id, 
-		total_quantity, total_unit, total_price, total_price_in_usd, currency, usd_rate, created_at
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+		total_quantity, total_price, total_price_in_usd, currency, usd_rate, created_at
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 `
 
 	stmt, err := tx.PrepareContext(ctx, tx.Rebind(q))
@@ -77,7 +77,7 @@ func (r repository) InsertToLongTermDB(ctx context.Context, tx *sqlx.Tx, orders 
 	for _, order := range orders {
 		_, err = stmt.ExecContext(ctx,
 			order.ID, order.CashierID, order.StoreID, order.PaymentID,
-			order.CustomerID, order.TotalQuantity, order.TotalUnit, order.TotalPrice, order.TotalPriceInUSD, order.Currency,
+			order.CustomerID, order.TotalQuantity, order.TotalPrice, order.TotalPriceInUSD, order.Currency,
 			order.UsdRate, order.CreatedAt)
 		if err != nil {
 			return errors.New(err)

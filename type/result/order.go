@@ -19,7 +19,6 @@ type Order struct {
 	PaymentID       null.String     `json:"payment_id"`
 	CustomerID      null.String     `json:"customer_id"`
 	TotalQuantity   null.Int64      `json:"total_quantity"`
-	TotalUnit       null.Int64      `json:"total_unit"`
 	TotalPrice      decimal.Decimal `json:"total_price"`
 	TotalPriceInUSD decimal.Decimal `json:"total_price_in_usd"`
 	Currency        null.String     `json:"currency"`
@@ -49,7 +48,6 @@ func (o *Order) FromModel(orderModel model.Order) error {
 	o.PaymentID = orderModel.PaymentID
 	o.CustomerID = orderModel.CustomerID
 	o.TotalQuantity = orderModel.TotalQuantity
-	o.TotalUnit = orderModel.TotalUnit
 	o.TotalPrice = orderModel.TotalPrice
 	o.TotalPriceInUSD = orderModel.TotalPriceInUSD
 	o.Currency = orderModel.Currency
@@ -72,11 +70,11 @@ func (o *Order) FromModel(orderModel model.Order) error {
 }
 
 type ServiceIngestOrder struct {
-	ID           uuid.UUID                  `json:"id"`
+	ID           string                     `json:"id"`
 	CashierID    uuid.UUID                  `json:"cashier_id"`
 	StoreID      string                     `json:"store_id"`
 	PaymentID    string                     `json:"payment_id"`
-	CustomerID   string                     `json:"customer_id"`
+	CustomerID   null.String                `json:"customer_id"`
 	Currency     string                     `json:"currency"`
 	CreatedAt    time.Time                  `json:"created_at"`
 	OrderDetails []ServiceIngestOrderDetail `json:"order_details"`
@@ -89,22 +87,20 @@ type ServiceIngestOrderDetail struct {
 	Price    decimal.Decimal `json:"price"`
 }
 
-func (s *ServiceIngestOrder) FromParamServiceIngestionOrder(param params.ServiceIngestionOrder, uuid uuid.UUID) {
-	s.ID = uuid
+func (s *ServiceIngestOrder) FromParamServiceIngestionOrder(param params.ServiceIngestionOrder, id string) {
+	s.ID = id
 	s.CashierID = param.CashierID
 	s.StoreID = param.StoreID
 	s.PaymentID = param.PaymentID
 	s.CustomerID = param.CustomerID
 	s.Currency = param.Currency
-	s.CreatedAt = param.CreatedAt
+	s.CreatedAt = param.PaymentDate
 	s.OrderDetails = make([]ServiceIngestOrderDetail, len(param.OrderDetails))
 
 	for idx := range s.OrderDetails {
 		s.OrderDetails[idx] = ServiceIngestOrderDetail{
 			ItemID:   param.OrderDetails[idx].ItemID,
 			Quantity: param.OrderDetails[idx].Quantity,
-			Unit:     param.OrderDetails[idx].Unit,
-			Price:    param.OrderDetails[idx].Price,
 		}
 	}
 }
@@ -116,7 +112,6 @@ type OrderBriefInformation struct {
 	PaymentID       null.String     `json:"payment_id"`
 	CustomerID      null.String     `json:"customer_id"`
 	TotalQuantity   null.Int64      `json:"total_quantity"`
-	TotalUnit       null.Int64      `json:"total_unit"`
 	TotalPrice      decimal.Decimal `json:"total_price"`
 	TotalPriceInUSD decimal.Decimal `json:"total_price_in_usd"`
 	Currency        null.String     `json:"currency"`
@@ -136,7 +131,6 @@ func (o *OrderBriefInformation) FromModel(orderModel model.Order) error {
 	o.PaymentID = orderModel.PaymentID
 	o.CustomerID = orderModel.CustomerID
 	o.TotalQuantity = orderModel.TotalQuantity
-	o.TotalUnit = orderModel.TotalUnit
 	o.TotalPrice = orderModel.TotalPrice
 	o.TotalPriceInUSD = orderModel.TotalPriceInUSD
 	o.Currency = orderModel.Currency
@@ -144,4 +138,27 @@ func (o *OrderBriefInformation) FromModel(orderModel model.Order) error {
 	o.CreatedAt = orderModel.CreatedAt
 
 	return nil
+}
+
+type GetAggregateOrderService struct {
+	TopProducts []GetAggregateOrderTopProductService `json:"top_products"`
+	Chart       []GetAggregateOrderChartService      `json:"chart"`
+
+	ItemSoldTotalQuantity int64           `json:"item_sold_total_quantity"`
+	ItemSoldTotalPrice    decimal.Decimal `json:"item_sold_total_price"`
+
+	TotalCustomerOrderQuantity    int64 `json:"total_customer_order_quantity"`
+	TotalNotCustomerOrderQuantity int64 `json:"total_not_customer_order_quantity"`
+}
+
+type GetAggregateOrderTopProductService struct {
+	ItemID                string `json:"item_id"`
+	ItemName              string `json:"item_name"`
+	ItemSoldTotalQuantity int64  `json:"item_sold_total_quantity"`
+}
+
+type GetAggregateOrderChartService struct {
+	TotalOrderQuantity int64           `json:"total_order_quantity"`
+	TotalOrderPrice    decimal.Decimal `json:"total_order_price"`
+	Date               time.Time       `json:"date"`
 }

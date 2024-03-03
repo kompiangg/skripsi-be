@@ -4,10 +4,10 @@ import (
 	"flag"
 
 	"skripsi-be/cmd/authservice"
+	"skripsi-be/cmd/generalservice"
 	"skripsi-be/cmd/ingestionservice"
 	"skripsi-be/cmd/longtermloadservice"
 	"skripsi-be/cmd/middleware"
-	"skripsi-be/cmd/orderservice"
 	"skripsi-be/cmd/scheduler"
 	"skripsi-be/cmd/servingservice"
 	"skripsi-be/cmd/shardingloadservice"
@@ -36,6 +36,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	defer func() {
 		log.Info().Msg("Closing all connections...")
 
@@ -113,17 +114,17 @@ func main() {
 			panic(err)
 		}
 		log.Info().Msg("Shutting down long term load service...")
-	} else if *serviceName == "orderservice" {
-		log.Info().Msg("Starting order service...")
-		err = orderservice.Init(
+	} else if *serviceName == "generalservice" {
+		log.Info().Msg("Starting general service...")
+		err = generalservice.Init(
 			service,
-			config.Microservice.OrderService,
+			config.Microservice.GeneralService,
 			mw,
 		)
 		if err != nil {
 			panic(err)
 		}
-		log.Info().Msg("Shutting down order service...")
+		log.Info().Msg("Shutting down general service...")
 	} else if *serviceName == "scheduler" {
 		log.Info().Msg("Starting scheduler...")
 		scheduler.Init(

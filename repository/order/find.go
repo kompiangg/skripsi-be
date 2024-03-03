@@ -13,7 +13,7 @@ import (
 // Shard
 func (r repository) FindAllOnShardDB(ctx context.Context, param params.ShardTimeSeriesWhereQuery) ([]model.Order, error) {
 	qBuilder := squirrel.
-		Select("id, cashier_id, store_id, payment_id, customer_id, total_quantity, total_unit, total_price, total_price_in_usd, currency, usd_rate, created_at").
+		Select("id, cashier_id, store_id, payment_id, customer_id, total_quantity, total_price, total_price_in_usd, currency, usd_rate, created_at").
 		From("orders").
 		OrderBy("created_at DESC")
 
@@ -74,7 +74,6 @@ func (r repository) FindAllOrderAndDetailsOnShardDB(ctx context.Context, param p
 			"o.payment_id as payment_id",
 			"o.customer_id as customer_id",
 			"o.total_quantity as total_quantity",
-			"o.total_unit as total_unit",
 			"o.total_price as total_price",
 			"o.total_price_in_usd as total_price_in_usd",
 			"o.currency as currency",
@@ -118,7 +117,6 @@ func (r repository) FindOrderByIDOnShardDB(ctx context.Context, shardIdx int, id
 			payment_id, 
 			customer_id, 
 			total_quantity, 
-			total_unit, 
 			total_price, 
 			total_price_in_usd, 
 			currency, 
@@ -164,7 +162,7 @@ func (r repository) FindOrderDetailsByOrderIDOnShardDB(ctx context.Context, shar
 
 // Long Term
 func (r repository) FindAllOnLongTermDB(ctx context.Context, param params.LongTermWhereQuery) ([]model.Order, error) {
-	qBuilder := squirrel.Select("id, cashier_id, store_id, payment_id, customer_id, total_quantity, total_unit, total_price, total_price_in_usd, currency, usd_rate, created_at").
+	qBuilder := squirrel.Select("id, cashier_id, store_id, payment_id, customer_id, total_quantity, total_price, total_price_in_usd, currency, usd_rate, created_at").
 		From("orders").
 		OrderBy("created_at DESC")
 
@@ -225,7 +223,6 @@ func (r repository) FindAllOrderAndDetailsOnLongTermDB(ctx context.Context, para
 			"o.payment_id as payment_id",
 			"o.customer_id as customer_id",
 			"o.total_quantity as total_quantity",
-			"o.total_unit as total_unit",
 			"o.total_price as total_price",
 			"o.total_price_in_usd as total_price_in_usd",
 			"o.currency as currency",
@@ -269,7 +266,6 @@ func (r repository) FindOrderByIDOnLongTermDB(ctx context.Context, id string) (m
 			payment_id, 
 			customer_id, 
 			total_quantity, 
-			total_unit, 
 			total_price, 
 			total_price_in_usd, 
 			currency, 

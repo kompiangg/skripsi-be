@@ -27,16 +27,16 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 		return nil, errors.Wrap(errors.ErrDataParamStartDateMustNotAfterEndDate)
 	}
 
-	// Why i did this?
-	// param.StartDate = time.Date(param.StartDate.Year(), param.StartDate.Month(), param.StartDate.Day(), 0, 0, 0, 0, param.StartDate.Location())
-	// param.EndDate = time.Date(param.EndDate.Year(), param.EndDate.Month(), param.EndDate.Day(), 23, 59, 59, 0, param.EndDate.Location())
-
-	shardQuery, err := s.getShardWhereQuery(param.StartDate, param.EndDate)
-	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-
 	if s.config.IsUsingSharding {
+		// Why i did this?
+		// param.StartDate = time.Date(param.StartDate.Year(), param.StartDate.Month(), param.StartDate.Day(), 0, 0, 0, 0, param.StartDate.Location())
+		// param.EndDate = time.Date(param.EndDate.Year(), param.EndDate.Month(), param.EndDate.Day(), 23, 59, 59, 0, param.EndDate.Location())
+
+		shardQuery, err := s.getShardWhereQuery(param.StartDate, param.EndDate)
+		if err != nil {
+			return nil, errors.Wrap(err)
+		}
+
 		errorChan := make(chan error, len(shardQuery))
 		defer close(errorChan)
 
@@ -87,7 +87,6 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 							PaymentID:       order[idx].PaymentID,
 							CustomerID:      order[idx].CustomerID,
 							TotalQuantity:   order[idx].TotalQuantity,
-							TotalUnit:       order[idx].TotalUnit,
 							TotalPrice:      order[idx].TotalPrice,
 							TotalPriceInUSD: order[idx].TotalPriceInUSD,
 							Currency:        order[idx].Currency,
@@ -163,7 +162,6 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 					PaymentID:       order[idx].PaymentID,
 					CustomerID:      order[idx].CustomerID,
 					TotalQuantity:   order[idx].TotalQuantity,
-					TotalUnit:       order[idx].TotalUnit,
 					TotalPrice:      order[idx].TotalPrice,
 					TotalPriceInUSD: order[idx].TotalPriceInUSD,
 					Currency:        order[idx].Currency,
@@ -272,7 +270,6 @@ func (s service) FindBriefInformationOrder(ctx context.Context, param params.Fin
 						PaymentID:       order[idx].PaymentID,
 						CustomerID:      order[idx].CustomerID,
 						TotalQuantity:   order[idx].TotalQuantity,
-						TotalUnit:       order[idx].TotalUnit,
 						TotalPrice:      order[idx].TotalPrice,
 						TotalPriceInUSD: order[idx].TotalPriceInUSD,
 						Currency:        order[idx].Currency,
@@ -323,7 +320,6 @@ func (s service) FindBriefInformationOrder(ctx context.Context, param params.Fin
 				PaymentID:       order[idx].PaymentID,
 				CustomerID:      order[idx].CustomerID,
 				TotalQuantity:   order[idx].TotalQuantity,
-				TotalUnit:       order[idx].TotalUnit,
 				TotalPrice:      order[idx].TotalPrice,
 				TotalPriceInUSD: order[idx].TotalPriceInUSD,
 				Currency:        order[idx].Currency,

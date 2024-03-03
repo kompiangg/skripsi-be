@@ -42,6 +42,10 @@ var (
 	ErrFailedCastJWTClaims = errors.New("failed to cast jwt claims")
 )
 
+func Join(errs ...error) error {
+	return errorsx.Join(errs...)
+}
+
 func Wrap(cause error) error {
 	if cause == nil {
 		return nil

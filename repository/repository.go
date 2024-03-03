@@ -10,6 +10,7 @@ import (
 	"skripsi-be/repository/customer"
 	"skripsi-be/repository/item"
 	"skripsi-be/repository/order"
+	"skripsi-be/repository/payment_types"
 	"skripsi-be/repository/publisher"
 	"skripsi-be/repository/shard"
 	"skripsi-be/repository/store"
@@ -22,16 +23,17 @@ import (
 )
 
 type Repository struct {
-	Sharding  shard.Repository
-	Order     order.Repository
-	Account   account.Repository
-	Admin     admin.Repository
-	Publisher publisher.Repository
-	Currency  currency.Repository
-	Cashier   cashier.Repository
-	Customer  customer.Repository
-	Store     store.Repository
-	Item      item.Repository
+	Sharding     shard.Repository
+	Order        order.Repository
+	Account      account.Repository
+	Admin        admin.Repository
+	Publisher    publisher.Repository
+	Currency     currency.Repository
+	Cashier      cashier.Repository
+	Customer     customer.Repository
+	Store        store.Repository
+	Item         item.Repository
+	PaymentTypes payment_types.Repository
 
 	LongTermDBTx            func(ctx context.Context) (*sqlx.Tx, error)
 	ShardDBTx               func(ctx context.Context, dbIndex int) (*sqlx.Tx, error)
@@ -105,17 +107,23 @@ func New(
 		generalDatabase,
 	)
 
+	paymentTypes := payment_types.New(
+		payment_types.Config{},
+		generalDatabase,
+	)
+
 	return Repository{
-		Sharding:  sharding,
-		Order:     order,
-		Account:   account,
-		Admin:     admin,
-		Publisher: publisher,
-		Currency:  currency,
-		Cashier:   cashier,
-		Customer:  customer,
-		Store:     store,
-		Item:      item,
+		Sharding:     sharding,
+		Order:        order,
+		Account:      account,
+		Admin:        admin,
+		Publisher:    publisher,
+		Currency:     currency,
+		Cashier:      cashier,
+		Customer:     customer,
+		Store:        store,
+		Item:         item,
+		PaymentTypes: paymentTypes,
 
 		LongTermDBTx:            beginLongTermDBTx(longTermDatabase),
 		ShardDBTx:               beginShardDBTx(shardingDatabase),

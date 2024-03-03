@@ -124,13 +124,13 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 			}
 
 			if i == 0 {
-				startDateQuery = now.Add(-time.Duration(dayInNanoSecond) * time.Nanosecond)
+				startDateQuery = now.Add(-time.Duration(dayInNanoSecond+1) * time.Nanosecond)
 				endDateQuery = now.Add(-time.Duration(time.Nanosecond * diffEnd))
 			} else if i == len(choosedDB)-1 {
-				startDateQuery = now.Add(-time.Duration(time.Nanosecond * diffStart))
+				startDateQuery = now.Add(-time.Duration(time.Nanosecond * (diffStart + 1)))
 				endDateQuery = now.Add(-time.Duration(oneIndexBeforeDayInNanoSecond) * time.Nanosecond)
 			} else {
-				startDateQuery = now.Add(-time.Duration(dayInNanoSecond) * time.Nanosecond)
+				startDateQuery = now.Add(-time.Duration(dayInNanoSecond+1) * time.Nanosecond)
 				endDateQuery = now.Add(-time.Duration(oneIndexBeforeDayInNanoSecond) * time.Nanosecond)
 			}
 

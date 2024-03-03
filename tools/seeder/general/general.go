@@ -18,6 +18,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
+	"github.com/shopspring/decimal"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -460,7 +461,7 @@ func loadItem(path string) ([]model.Item, error) {
 			ID:            record[0],
 			Name:          name,
 			Desc:          record[2],
-			Price:         price,
+			Price:         decimal.NewFromFloat(price),
 			OriginCountry: record[4],
 			Supplier:      record[5],
 			Unit:          record[6],
