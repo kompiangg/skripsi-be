@@ -120,6 +120,15 @@ func (s service) FindInsightBasedOnInterval(ctx context.Context, interval string
 			res.TopProducts = topProducts
 		}
 
+		for idx := range res.TopProducts {
+			item, err := s.itemRepo.FindByID(ctx, res.TopProducts[idx].ItemID)
+			if err != nil {
+				return res, errors.Wrap(err)
+			}
+
+			res.TopProducts[idx].ItemName = item.Name
+		}
+
 		res.Chart = make([]result.GetAggregateOrderChartService, len(dayRanges))
 
 		customerOrderMap := make(map[string]model.GetAggregateOrderResultRepo)
