@@ -1,4 +1,4 @@
-package currency
+package scheduler
 
 import (
 	"context"
@@ -8,7 +8,8 @@ import (
 )
 
 type Repository interface {
-	FindByBaseAndQuote(ctx context.Context, base string, quote string) (model.Currency, error)
+	FindByName(ctx context.Context, jobName string) (model.Scheduler, error)
+	IncrementRunCount(ctx context.Context, tx *sqlx.Tx, jobName string) error
 }
 
 type Config struct {

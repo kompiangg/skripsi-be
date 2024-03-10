@@ -9,6 +9,7 @@ import (
 	"skripsi-be/config"
 	"skripsi-be/connection"
 	"skripsi-be/lib/encodelib"
+	"skripsi-be/repository"
 	"skripsi-be/service"
 	"skripsi-be/type/constant"
 	"skripsi-be/type/model"
@@ -26,7 +27,7 @@ import (
 	"github.com/volatiletech/null/v9"
 )
 
-func LoadOrderData(config config.Config, connections connection.Connection, service service.Service) error {
+func LoadOrderData(config config.Config, connections connection.Connection, service service.Service, repository repository.Repository) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		sigterm := make(chan os.Signal, 1)
@@ -75,7 +76,7 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 		}
 	}
 
-	afnUSDRate, err := connections.Redis.Get(ctx, "USD_AFN").Float64()
+	usdRate, err := repository.Currency.FindByBaseAndQuote(ctx, "USD", "AFN")
 	if err != nil {
 		return errors.Wrap(err, constant.SkipErrorParameter)
 	}
@@ -84,7 +85,7 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 	for i := 0; i < iteration; i++ {
 		log.Info().Msgf("Iteration %d", i+1)
 
-		orders, detailOrders, err := loadOrder("./dataset/fact_table.csv", stores, storeCashier, customers, payments, items, config, decimal.NewFromFloat(afnUSDRate))
+		orders, detailOrders, err := loadOrder("./dataset/fact_table.csv", stores, storeCashier, customers, payments, items, config, usdRate.Rate)
 		if err != nil {
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}

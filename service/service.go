@@ -30,7 +30,6 @@ func New(
 			Shards:          config.ShardingDatabase.Shards,
 			Date:            config.Date,
 		},
-		repository.Sharding,
 		repository.Order,
 		repository.Publisher,
 		repository.Currency,
@@ -38,9 +37,11 @@ func New(
 		repository.Customer,
 		repository.Store,
 		repository.Item,
+		repository.Scheduler,
 
 		repository.ShardDBTx,
 		repository.LongTermDBTx,
+		repository.GeneralDBTx,
 		repository.GetShardIndexByDateTime,
 		repository.GetShardWhereQuery,
 	)

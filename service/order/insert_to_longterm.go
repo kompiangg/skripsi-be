@@ -15,14 +15,14 @@ func (s service) InsertToLongTerm(ctx context.Context, param params.ServiceInser
 		return errors.New(err)
 	}
 
-	tx, err := s.beginLongTermTx(ctx)
-	if err != nil {
-		return errors.New(err)
-	}
-
 	orders := make([]model.Order, len(param))
 	for idx, order := range param {
 		orders[idx] = order.ToOrderModel()
+	}
+
+	tx, err := s.beginLongTermTx(ctx)
+	if err != nil {
+		return errors.New(err)
 	}
 
 	err = s.orderRepo.InsertToLongTermDB(ctx, tx, orders)

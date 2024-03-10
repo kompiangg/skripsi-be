@@ -2,15 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"skripsi-be/cmd/scheduler/task"
 	"skripsi-be/config"
 	"skripsi-be/connection"
 	"skripsi-be/repository"
 	"skripsi-be/service"
-	"skripsi-be/type/params"
-	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -44,7 +41,6 @@ func main() {
 		connections.LongTermDatabase,
 		connections.GeneralDatabase,
 		connections.ShardingDatabase,
-		connections.Redis,
 		connections.KafkaProducer,
 	)
 	if err != nil {
@@ -59,69 +55,75 @@ func main() {
 		panic(err)
 	}
 
-	_ = task.New(svc)
+	t := task.New(svc)
+
+	err = t.Sharding(context.Background())
+	if err != nil {
+		panic(err)
+		return
+	}
 
 	// Benchmarking
-	paramStart, err := time.Parse("2006-01-02", "2023-08-02")
-	if err != nil {
-		panic(err)
-	}
+	// paramStart, err := time.Parse("2006-01-02", "2023-09-02")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	paramEnd, err := time.Parse("2006-01-02", "2023-12-31")
-	if err != nil {
-		panic(err)
-	}
+	// paramEnd, err := time.Parse("2006-01-02", "2023-12-31")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	startProcess := time.Now()
+	// startProcess := time.Now()
 
-	shardOrders, err := svc.Order.FindOrder(context.Background(), params.FindOrderService{
-		StartDate: paramStart,
-		EndDate:   paramEnd,
-	})
-	if err != nil {
-		panic(err)
-	}
+	// shardOrders, err := svc.Order.FindOrder(context.Background(), params.FindOrderService{
+	// 	StartDate: paramStart,
+	// 	EndDate:   paramEnd,
+	// })
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	var shardingDatabaseRuntime float64 = float64(time.Since(startProcess).Milliseconds())
+	// var shardingDatabaseRuntime float64 = float64(time.Since(startProcess).Milliseconds())
 
-	detailOrdersCount := 0
-	for _, order := range shardOrders {
-		detailOrdersCount += len(order.OrderDetails)
-	}
+	// detailOrdersCount := 0
+	// for _, order := range shardOrders {
+	// 	detailOrdersCount += len(order.OrderDetails)
+	// }
 
-	fmt.Println("Sharding Database")
-	fmt.Printf("Querying %d row in %vms\n", detailOrdersCount, shardingDatabaseRuntime)
+	// fmt.Println("Sharding Database")
+	// fmt.Printf("Querying %d row in %vms\n", detailOrdersCount, shardingDatabaseRuntime)
 
-	config.ShardingDatabase.IsUsingSharding = false
-	svc, err = service.New(
-		repository,
-		config,
-	)
-	if err != nil {
-		panic(err)
-	}
+	// config.ShardingDatabase.IsUsingSharding = false
+	// svc, err = service.New(
+	// 	repository,
+	// 	config,
+	// )
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	shardOrders = nil
-	startProcess = time.Now()
+	// shardOrders = nil
+	// startProcess = time.Now()
 
-	shardOrders, err = svc.Order.FindOrder(context.Background(), params.FindOrderService{
-		StartDate: paramStart,
-		EndDate:   paramEnd,
-	})
-	if err != nil {
-		panic(err)
-	}
+	// shardOrders, err = svc.Order.FindOrder(context.Background(), params.FindOrderService{
+	// 	StartDate: paramStart,
+	// 	EndDate:   paramEnd,
+	// })
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	var longtermDatabaseRuntime float64 = float64(time.Since(startProcess).Milliseconds())
+	// var longtermDatabaseRuntime float64 = float64(time.Since(startProcess).Milliseconds())
 
-	detailOrdersCount = 0
-	for _, order := range shardOrders {
-		detailOrdersCount += len(order.OrderDetails)
-	}
+	// detailOrdersCount = 0
+	// for _, order := range shardOrders {
+	// 	detailOrdersCount += len(order.OrderDetails)
+	// }
 
-	fmt.Println("Longterm Database")
-	fmt.Printf("Querying %d row in %vms\n", detailOrdersCount, longtermDatabaseRuntime)
+	// fmt.Println("Longterm Database")
+	// fmt.Printf("Querying %d row in %vms\n", detailOrdersCount, longtermDatabaseRuntime)
 
-	speedIncrease := ((longtermDatabaseRuntime - shardingDatabaseRuntime) / longtermDatabaseRuntime) * 100
-	fmt.Printf("Sharding database is %f%% faster than Longterm database\n", speedIncrease)
+	// speedIncrease := ((longtermDatabaseRuntime - shardingDatabaseRuntime) / longtermDatabaseRuntime) * 100
+	// fmt.Printf("Sharding database is %f%% faster than Longterm database\n", speedIncrease)
 }

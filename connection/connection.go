@@ -4,32 +4,19 @@ import (
 	"skripsi-be/config"
 
 	pkgSQLX "skripsi-be/pkg/db/sqlx"
-	pkgRedis "skripsi-be/pkg/redis"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/jmoiron/sqlx"
-	"github.com/redis/go-redis/v9"
 )
 
 type Connection struct {
 	GeneralDatabase  *sqlx.DB
 	LongTermDatabase *sqlx.DB
 	ShardingDatabase []*sqlx.DB
-	Redis            *redis.Client
 	KafkaProducer    *kafka.Producer
 }
 
 func New(config config.Config) (Connection, error) {
-	redis, err := pkgRedis.New(pkgRedis.RedisConfig{
-		Hostname: config.Redis.Hostname,
-		Username: config.Redis.Username,
-		Password: config.Redis.Password,
-		DB:       config.Redis.DB,
-	})
-	if err != nil {
-		return Connection{}, err
-	}
-
 	generalDatabase, err := pkgSQLX.InitSQLX(config.GeneralDatabase.URIConnection)
 	if err != nil {
 		return Connection{}, err
@@ -59,7 +46,6 @@ func New(config config.Config) (Connection, error) {
 	}
 
 	return Connection{
-		Redis:            redis,
 		LongTermDatabase: longTermDatabase,
 		ShardingDatabase: shardingDatabase,
 		GeneralDatabase:  generalDatabase,
@@ -68,12 +54,7 @@ func New(config config.Config) (Connection, error) {
 }
 
 func (c *Connection) Close() error {
-	err := c.Redis.Close()
-	if err != nil {
-		return err
-	}
-
-	err = c.GeneralDatabase.Close()
+	err := c.GeneralDatabase.Close()
 	if err != nil {
 		return err
 	}

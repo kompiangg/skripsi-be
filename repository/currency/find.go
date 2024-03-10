@@ -2,27 +2,32 @@ package currency
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"skripsi-be/pkg/errors"
-	"skripsi-be/type/constant"
-
-	"github.com/redis/go-redis/v9"
-	"github.com/shopspring/decimal"
+	"skripsi-be/type/model"
 )
 
-func (r repository) FindUSDCurrencyRate(ctx context.Context, currency string) (decimal.Decimal, error) {
-	key := fmt.Sprintf("USD_%s", currency)
+func (r repository) FindByBaseAndQuote(ctx context.Context, base string, quote string) (model.Currency, error) {
+	q := `
+		SELECT
+			id,
+			base,
+			quote,
+			rate,
+			created_at
+		FROM
+			currencies
+		WHERE
+			base = ?
+			AND quote = ?;
+	`
 
-	rate, err := r.redisClient.Get(ctx, key).Result()
-	if errors.Is(err, redis.Nil) {
-		return decimal.Zero, constant.ErrRedisNil
+	var res model.Currency
+	err := r.generalDB.GetContext(ctx, &res, r.generalDB.Rebind(q), base, quote)
+	if errors.Is(err, sql.ErrNoRows) {
+		return res, errors.ErrNotFound
 	} else if err != nil {
-		return decimal.Zero, errors.Wrap(err)
-	}
-
-	res, err := decimal.NewFromString(rate)
-	if err != nil {
-		return decimal.Zero, errors.Wrap(err)
+		return res, errors.Wrap(err)
 	}
 
 	return res, nil

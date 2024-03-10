@@ -53,7 +53,6 @@ func main() {
 		connections.LongTermDatabase,
 		connections.GeneralDatabase,
 		connections.ShardingDatabase,
-		connections.Redis,
 		connections.KafkaProducer,
 	)
 	if err != nil {

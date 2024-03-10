@@ -48,7 +48,7 @@ func main() {
 		log.Info().Msg("All connections closed, RIP 🙏")
 	}()
 
-	repo, err := repository.New(cfg, connections.LongTermDatabase, connections.GeneralDatabase, connections.ShardingDatabase, connections.Redis, connections.KafkaProducer)
+	repo, err := repository.New(cfg, connections.LongTermDatabase, connections.GeneralDatabase, connections.ShardingDatabase, connections.KafkaProducer)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create repository")
 	}
@@ -64,7 +64,7 @@ func main() {
 			log.Fatal().Err(err).Msgf("failed to load data to general database, %s", err.(*errors.Error).ErrorStack())
 		}
 	} else if *seederFlag.ConnectionType == "else" {
-		err := order.LoadOrderData(cfg, connections, svc)
+		err := order.LoadOrderData(cfg, connections, svc, repo)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("failed to load data to else database, %s", err.(*errors.Error).ErrorStack())
 		}

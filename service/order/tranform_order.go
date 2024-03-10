@@ -3,10 +3,8 @@ package order
 import (
 	"context"
 	"skripsi-be/pkg/errors"
-	"skripsi-be/type/constant"
+	"skripsi-be/type/model"
 	"skripsi-be/type/params"
-
-	"github.com/shopspring/decimal"
 )
 
 func (s service) TransformOrder(ctx context.Context, param []params.ServiceTransformOrder) error {
@@ -17,18 +15,16 @@ func (s service) TransformOrder(ctx context.Context, param []params.ServiceTrans
 		}
 	}
 
-	mapCurrency := make(map[string]decimal.Decimal)
+	mapCurrency := make(map[string]model.Currency)
 	for _, v := range param {
 		if _, ok := mapCurrency[v.Currency]; !ok {
-			mapCurrency[v.Currency] = decimal.Zero
+			mapCurrency[v.Currency] = model.Currency{}
 		}
 	}
 
 	for currency := range mapCurrency {
-		usdRate, err := s.currencyRepo.FindUSDCurrencyRate(ctx, currency)
-		if errors.Is(err, constant.ErrRedisNil) {
-			usdRate = decimal.NewFromFloat(0)
-		} else if err != nil {
+		usdRate, err := s.currencyRepo.FindByBaseAndQuote(ctx, "USD", currency)
+		if err != nil {
 			return errors.Wrap(err)
 		}
 
@@ -37,7 +33,7 @@ func (s service) TransformOrder(ctx context.Context, param []params.ServiceTrans
 
 	repoParam := make([]params.RepositoryPublishLoadOrderEvent, len(param))
 	for i, v := range param {
-		repoParam[i] = v.TransformOrder(mapCurrency[v.Currency])
+		repoParam[i] = v.TransformOrder(mapCurrency[v.Currency].Rate)
 	}
 
 	err := s.publisherRepo.PublishLoadOrderEvent(ctx, repoParam)

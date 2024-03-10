@@ -9,7 +9,7 @@ import (
 	"skripsi-be/repository/item"
 	"skripsi-be/repository/order"
 	"skripsi-be/repository/publisher"
-	"skripsi-be/repository/shard"
+	"skripsi-be/repository/scheduler"
 	"skripsi-be/repository/store"
 	"skripsi-be/type/params"
 	"skripsi-be/type/result"
@@ -42,7 +42,6 @@ type Config struct {
 
 type service struct {
 	config        Config
-	shardRepo     shard.Repository
 	orderRepo     order.Repository
 	publisherRepo publisher.Repository
 	currencyRepo  currency.Repository
@@ -50,16 +49,17 @@ type service struct {
 	customerRepo  customer.Repository
 	storeRepo     store.Repository
 	itemRepo      item.Repository
+	scheduler     scheduler.Repository
 
 	beginShardTx            func(ctx context.Context, dbIdx int) (*sqlx.Tx, error)
 	beginLongTermTx         func(ctx context.Context) (*sqlx.Tx, error)
+	beginGeneralTx          func(ctx context.Context) (*sqlx.Tx, error)
 	getShardIndexByDateTime func(date time.Time) (int, error)
 	getShardWhereQuery      func(startDate time.Time, endDate time.Time) ([]result.ShardTimeSeriesWhereQuery, error)
 }
 
 func New(
 	config Config,
-	shardRepo shard.Repository,
 	orderRepo order.Repository,
 	publisherRepo publisher.Repository,
 	currencyRepo currency.Repository,
@@ -67,15 +67,16 @@ func New(
 	customerRepo customer.Repository,
 	storeRepo store.Repository,
 	itemRepo item.Repository,
+	scheduler scheduler.Repository,
 
 	beginShardTx func(ctx context.Context, dbIdx int) (*sqlx.Tx, error),
 	beginLongTermTx func(ctx context.Context) (*sqlx.Tx, error),
+	beginGeneralTx func(ctx context.Context) (*sqlx.Tx, error),
 	getShardIndexByDateTime func(date time.Time) (int, error),
 	getShardWhereQuery func(startDate time.Time, endDate time.Time) ([]result.ShardTimeSeriesWhereQuery, error),
 ) Service {
 	return service{
 		config:        config,
-		shardRepo:     shardRepo,
 		orderRepo:     orderRepo,
 		publisherRepo: publisherRepo,
 		currencyRepo:  currencyRepo,
@@ -83,9 +84,11 @@ func New(
 		customerRepo:  customerRepo,
 		storeRepo:     storeRepo,
 		itemRepo:      itemRepo,
+		scheduler:     scheduler,
 
 		beginShardTx:            beginShardTx,
 		beginLongTermTx:         beginLongTermTx,
+		beginGeneralTx:          beginGeneralTx,
 		getShardIndexByDateTime: getShardIndexByDateTime,
 		getShardWhereQuery:      getShardWhereQuery,
 	}

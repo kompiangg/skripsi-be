@@ -23,6 +23,12 @@ func beginShardDBTx(shardingDatabase []*sqlx.DB) func(ctx context.Context, dbInd
 	}
 }
 
+func beginGeneralDBTx(generalDB *sqlx.DB) func(ctx context.Context) (*sqlx.Tx, error) {
+	return func(ctx context.Context) (*sqlx.Tx, error) {
+		return generalDB.BeginTxx(context.Background(), nil)
+	}
+}
+
 func getShardIndexByDateTime(shards config.Shards, customDate config.Date) func(date time.Time) (int, error) {
 	now := customDate.Now()
 

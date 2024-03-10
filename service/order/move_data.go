@@ -9,17 +9,14 @@ import (
 )
 
 func (s service) MoveDataThroughShard(ctx context.Context) error {
-	shardCount, err := s.shardRepo.GetShardCountScheduler(ctx)
-	if errors.Is(err, constant.ErrRedisNil) {
-		shardCount = 0
-		err = nil
-	} else if err != nil {
-		return errors.Wrap(err, constant.SkipErrorParameter)
+	shardScheduler, err := s.scheduler.FindByName(ctx, constant.ShardSchedulerCount)
+	if err != nil {
+		errors.Wrap(err, constant.SkipErrorParameter)
 	}
 
-	shardCount++
+	shardScheduler.RunCount++
 	for idx := len(s.config.Shards) - 1; idx >= 0; idx-- {
-		if shardCount%s.config.Shards[idx].DataRetention != 0 {
+		if shardScheduler.RunCount%s.config.Shards[idx].DataRetention != 0 {
 			continue
 		}
 
@@ -42,13 +39,13 @@ func (s service) MoveDataThroughShard(ctx context.Context) error {
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}
 
-		err = s.orderRepo.DeleteAllData(ctx, currentIndexTx)
+		err = s.orderRepo.DeleteOrderDetails(ctx, currentIndexTx)
 		if err != nil {
 			currentIndexTx.Rollback()
 			return errors.Wrap(err, constant.SkipErrorParameter)
 		}
 
-		err = s.orderRepo.DeleteOrderDetails(ctx, currentIndexTx)
+		err = s.orderRepo.DeleteAllData(ctx, currentIndexTx)
 		if err != nil {
 			currentIndexTx.Rollback()
 			return errors.Wrap(err, constant.SkipErrorParameter)
@@ -88,11 +85,23 @@ func (s service) MoveDataThroughShard(ctx context.Context) error {
 		}
 	}
 
-	if shardCount == s.config.Shards[len(s.config.Shards)-1].DataRetention {
-		shardCount = 0
+	if shardScheduler.RunCount == s.config.Shards[len(s.config.Shards)-1].DataRetention {
+		shardScheduler.RunCount = 0
 	}
 
-	err = s.shardRepo.SetShardCountScheduler(ctx, shardCount)
+	tx, err := s.beginGeneralTx(ctx)
+	if err != nil {
+		return errors.Wrap(err, constant.SkipErrorParameter)
+	}
+
+	defer tx.Rollback()
+
+	err = s.scheduler.IncrementRunCount(ctx, tx, constant.ShardSchedulerCount)
+	if err != nil {
+		return errors.Wrap(err, constant.SkipErrorParameter)
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return errors.Wrap(err, constant.SkipErrorParameter)
 	}
