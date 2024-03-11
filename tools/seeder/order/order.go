@@ -27,7 +27,7 @@ import (
 	"github.com/volatiletech/null/v9"
 )
 
-func LoadOrderData(config config.Config, connections connection.Connection, service service.Service, repository repository.Repository) error {
+func LoadOrderData(config config.Config, connections connection.Connection, service service.Service, repository repository.Repository, iteration int) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		sigterm := make(chan os.Signal, 1)
@@ -76,12 +76,11 @@ func LoadOrderData(config config.Config, connections connection.Connection, serv
 		}
 	}
 
-	usdRate, err := repository.Currency.FindByBaseAndQuote(ctx, "USD", "AFN")
+	usdRate, err := repository.Currency.FindByBaseAndQuote(ctx, "USD", "BDT")
 	if err != nil {
 		return errors.Wrap(err, constant.SkipErrorParameter)
 	}
 
-	iteration := 3
 	for i := 0; i < iteration; i++ {
 		log.Info().Msgf("Iteration %d", i+1)
 

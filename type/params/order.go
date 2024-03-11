@@ -239,7 +239,6 @@ type ServiceIngestionOrder struct {
 	StoreID      string                        `json:"store_id"`
 	PaymentID    string                        `json:"payment_id"`
 	CustomerID   null.String                   `json:"customer_id"`
-	Currency     string                        `json:"currency"`
 	PaymentDate  time.Time                     `json:"payment_date"`
 	OrderDetails []ServiceIngestionOrderDetail `json:"order_details"`
 
@@ -258,7 +257,6 @@ func (s ServiceIngestionOrder) Validate() error {
 		validation.Field(&s.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
 		validation.Field(&s.StoreID, validation.Required, validation.NotNil),
 		validation.Field(&s.PaymentID, validation.Required, validation.NotNil),
-		validation.Field(&s.Currency, validation.Required, validation.NotNil),
 		validation.Field(&s.PaymentDate, validation.Required, validation.NotNil),
 		validation.Field(&s.OrderDetails, validation.Required, validation.NotNil, validation.Length(1, 0)),
 	)
@@ -291,7 +289,6 @@ func (s ServiceIngestionOrder) ToRepositoryPublishTransformOrderEvent() Reposito
 		StoreID:      s.StoreID,
 		PaymentID:    s.PaymentID,
 		CustomerID:   s.CustomerID,
-		Currency:     s.Currency,
 		CreatedAt:    s.PaymentDate,
 		OrderDetails: make([]RepositoryPublishTransformOrderDetailEvent, 0),
 	}
@@ -305,7 +302,6 @@ type RepositoryPublishTransformOrderEvent struct {
 	StoreID      string                                       `json:"store_id"`
 	PaymentID    string                                       `json:"payment_id"`
 	CustomerID   null.String                                  `json:"customer_id"`
-	Currency     string                                       `json:"currency"`
 	CreatedAt    time.Time                                    `json:"created_at"`
 	OrderDetails []RepositoryPublishTransformOrderDetailEvent `json:"order_details"`
 }
@@ -332,9 +328,10 @@ type ServiceTransformOrder struct {
 	StoreID      string                        `json:"store_id"`
 	PaymentID    string                        `json:"payment_id"`
 	CustomerID   null.String                   `json:"customer_id"`
-	Currency     string                        `json:"currency"`
 	CreatedAt    time.Time                     `json:"created_at"`
 	OrderDetails []ServiceTransformOrderDetail `json:"order_details"`
+
+	Currency string
 }
 
 type ServiceTransformOrderDetail struct {
@@ -349,7 +346,6 @@ func (s ServiceTransformOrder) Validate() error {
 		validation.Field(&s.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
 		validation.Field(&s.StoreID, validation.Required, validation.NotNil),
 		validation.Field(&s.PaymentID, validation.Required, validation.NotNil),
-		validation.Field(&s.Currency, validation.Required, validation.NotNil),
 		validation.Field(&s.CreatedAt, validation.Required, validation.NotNil),
 		validation.Field(&s.OrderDetails, validation.Required, validation.NotNil, validation.Length(1, 0)),
 	)
@@ -385,7 +381,6 @@ func (s ServiceTransformOrder) TransformOrder(usdRate decimal.Decimal) Repositor
 		StoreID:         s.StoreID,
 		PaymentID:       s.PaymentID,
 		CustomerID:      s.CustomerID,
-		Currency:        s.Currency,
 		TotalQuantity:   totalQuantity,
 		TotalPrice:      totalPrice,
 		TotalPriceInUSD: totalPrice.Div(usdRate),

@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"sort"
 
 	"gopkg.in/yaml.v3"
 )
@@ -35,6 +36,10 @@ func Load(path string) (config Config, err error) {
 	if err != nil {
 		return config, err
 	}
+
+	sort.Slice(config.ShardingDatabase.Shards, func(i, j int) bool {
+		return config.ShardingDatabase.Shards[i].DataRetention < config.ShardingDatabase.Shards[j].DataRetention
+	})
 
 	return config, nil
 }

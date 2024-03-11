@@ -10,7 +10,7 @@ import (
 func (r repository) FindByID(ctx context.Context, id string) (model.Store, error) {
 	query := `
 		SELECT 
-			id, region, district, sub_district, created_at
+			id, nation, region, district, sub_district, currency, created_at
 		FROM 
 			stores
 		WHERE

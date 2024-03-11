@@ -83,14 +83,6 @@ func LoadGeneralDatabaseData(connections connection.Connection) error {
 	}
 	log.Info().Msg("Finish create cashier data...")
 
-	log.Info().Msg("Start insert account data to database...")
-	err = insertAccount(ctx, tx, accounts)
-	if err != nil {
-		tx.Rollback()
-		return errors.Wrap(err, constant.SkipErrorParameter)
-	}
-	log.Info().Msg("Finish insert account data to database...")
-
 	log.Info().Msg("Start insert cashier data to database...")
 	err = insertCashier(ctx, tx, cashiers)
 	if err != nil {
@@ -98,6 +90,14 @@ func LoadGeneralDatabaseData(connections connection.Connection) error {
 		return errors.Wrap(err, constant.SkipErrorParameter)
 	}
 	log.Info().Msg("Finish insert cashier data to database...")
+
+	log.Info().Msg("Start insert account data to database...")
+	err = insertAccount(ctx, tx, accounts)
+	if err != nil {
+		tx.Rollback()
+		return errors.Wrap(err, constant.SkipErrorParameter)
+	}
+	log.Info().Msg("Finish insert account data to database...")
 
 	log.Info().Msg("Start load payment data from csv...")
 	payments, err := loadPayment("./dataset/Trans_dim.csv")
@@ -223,9 +223,11 @@ func loadStore(path string) ([]model.Store, error) {
 
 		stores = append(stores, model.Store{
 			ID:          record[0],
+			Nation:      "BANGLADESH",
 			Region:      record[1],
 			District:    record[2],
 			SubDistrict: record[3],
+			Currency:    "BDT",
 			CreatedAt:   time.Now(),
 		})
 	}

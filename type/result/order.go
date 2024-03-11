@@ -75,7 +75,6 @@ type ServiceIngestOrder struct {
 	StoreID      string                     `json:"store_id"`
 	PaymentID    string                     `json:"payment_id"`
 	CustomerID   null.String                `json:"customer_id"`
-	Currency     string                     `json:"currency"`
 	CreatedAt    time.Time                  `json:"created_at"`
 	OrderDetails []ServiceIngestOrderDetail `json:"order_details"`
 }
@@ -93,7 +92,6 @@ func (s *ServiceIngestOrder) FromParamServiceIngestionOrder(param params.Service
 	s.StoreID = param.StoreID
 	s.PaymentID = param.PaymentID
 	s.CustomerID = param.CustomerID
-	s.Currency = param.Currency
 	s.CreatedAt = param.PaymentDate
 	s.OrderDetails = make([]ServiceIngestOrderDetail, len(param.OrderDetails))
 
