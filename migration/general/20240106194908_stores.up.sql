@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS stores (
   district VARCHAR(255),
   sub_district VARCHAR(255),
   currency VARCHAR(3),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

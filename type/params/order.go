@@ -386,6 +386,7 @@ func (s ServiceTransformOrder) TransformOrder(usdRate decimal.Decimal) Repositor
 		TotalPriceInUSD: totalPrice.Div(usdRate),
 		UsdRate:         usdRate,
 		CreatedAt:       s.CreatedAt,
+		Currency:        s.Currency,
 		OrderDetails:    []RepositoryPublishLoadOrderDetailEvent{},
 	}
 
