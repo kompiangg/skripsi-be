@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 
 export const options = {
   vus: 100,
-  iterations: 100,
+  iterations: 1000,
 };
 
 export async function setup() {
@@ -30,7 +30,7 @@ export default function (data) {
   const payload = [
     {
       payment_id: "P001",
-      customer_id: "C002080",
+      customer_id: null,
       currency: "BDT",
       payment_date: dayjs(`2023-${getRandom(6, 12)}-${getRandom(1, 30)} ${getRandom(0, 23)}:${getRandom(0, 59)}:${getRandom(0, 59)}`).format("YYYY-MM-DDTHH:mm:ssZ"),
       order_details: [
