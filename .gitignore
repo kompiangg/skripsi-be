@@ -95,3 +95,4 @@ etc/*.yaml
 
 dataset/*.csv
 */node_modules/*
+loadtest/*.json

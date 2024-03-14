@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"skripsi-be/cmd/transformservice/handler/transformorder"
 	"skripsi-be/config"
 	"skripsi-be/pkg/errors"
@@ -29,7 +28,6 @@ func Init(
 	for {
 		msg, err := consumer.ReadMessage(-1)
 		if err == nil {
-			fmt.Println("Received message", string(msg.Value))
 			err := transformHandler.HandleTransformOrderEvent(msg)
 			if err != nil {
 				log.Error().Err(err).Msg("Error while handling transform order event")

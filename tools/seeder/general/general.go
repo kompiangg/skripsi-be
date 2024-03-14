@@ -239,15 +239,19 @@ func insertStore(ctx context.Context, tx *sqlx.Tx, stores []model.Store) error {
 	q := `
 		INSERT INTO stores (
 			id,
+			nation,
 			region,
 			district,
 			sub_district,
+			currency,
 			created_at
 		) VALUES (
 			:id,
+			:nation,
 			:region,
 			:district,
 			:sub_district,
+			:currency,
 			:created_at
 		)
 	`

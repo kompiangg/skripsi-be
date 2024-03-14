@@ -66,6 +66,8 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 	})
 
 	return func(startDate time.Time, endDate time.Time) ([]result.ShardTimeSeriesWhereQuery, error) {
+		whereQueries := []result.ShardTimeSeriesWhereQuery{}
+
 		startDateOriginTimeZone := startDate.Location()
 		endDateOriginTimeZone := endDate.Location()
 
@@ -84,7 +86,12 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 		}
 
 		if diffEndInDay > subtractedShard[len(subtractedShard)-2].DataRetention {
-			return nil, constant.ErrOutOfShardRange
+			whereQueries = append(whereQueries, result.ShardTimeSeriesWhereQuery{
+				ShardIndex: len(subtractedShard) - 1,
+				StartDate:  startDate.In(startDateOriginTimeZone),
+				EndDate:    endDate.In(endDateOriginTimeZone),
+			})
+			return whereQueries, nil
 		}
 
 		for i, v := range subtractedShard {
@@ -102,7 +109,6 @@ func getShardWhereQuery(shards config.Shards, customDate config.Date) func(start
 		}
 
 		choosedDB := subtractedShard[endIdx : startIdx+1]
-		whereQueries := []result.ShardTimeSeriesWhereQuery{}
 		startDateQuery := time.Time{}
 		endDateQuery := time.Time{}
 

@@ -72,7 +72,6 @@ func (o *Order) FromModel(orderModel model.Order) error {
 type ServiceIngestOrder struct {
 	ID           string                     `json:"id"`
 	CashierID    uuid.UUID                  `json:"cashier_id"`
-	StoreID      string                     `json:"store_id"`
 	PaymentID    string                     `json:"payment_id"`
 	CustomerID   null.String                `json:"customer_id"`
 	CreatedAt    time.Time                  `json:"created_at"`
@@ -89,7 +88,6 @@ type ServiceIngestOrderDetail struct {
 func (s *ServiceIngestOrder) FromParamServiceIngestionOrder(param params.ServiceIngestionOrder, id string) {
 	s.ID = id
 	s.CashierID = param.CashierID
-	s.StoreID = param.StoreID
 	s.PaymentID = param.PaymentID
 	s.CustomerID = param.CustomerID
 	s.CreatedAt = param.PaymentDate
@@ -99,6 +97,8 @@ func (s *ServiceIngestOrder) FromParamServiceIngestionOrder(param params.Service
 		s.OrderDetails[idx] = ServiceIngestOrderDetail{
 			ItemID:   param.OrderDetails[idx].ItemID,
 			Quantity: param.OrderDetails[idx].Quantity,
+			Unit:     param.OrderDetails[idx].Unit,
+			Price:    param.OrderDetails[idx].Price,
 		}
 	}
 }

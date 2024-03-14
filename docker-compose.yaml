@@ -20,6 +20,7 @@ services:
           memory: 2048M
   longterm-db:
     image: postgres:14.7
+    shm_size: 2g
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: longterm
@@ -37,6 +38,7 @@ services:
           memory: 4096M
   sharding-oneday-db:
     image: postgres:14.7
+    shm_size: 1g
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: sharding
@@ -54,6 +56,7 @@ services:
           memory: 256M
   sharding-sevenday-db:
     image: postgres:14.7
+    shm_size: 1g
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: sharding
@@ -71,6 +74,7 @@ services:
           memory: 512M
   sharding-thirtyday-db:
     image: postgres:14.7
+    shm_size: 1g
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: sharding
@@ -88,6 +92,7 @@ services:
           memory: 1024M
   sharding-ninetyday-db:
     image: postgres:14.7
+    shm_size: 1g
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: sharding

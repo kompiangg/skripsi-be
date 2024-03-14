@@ -236,7 +236,6 @@ func (s FindOrderService) Validate() error {
 }
 
 type ServiceIngestionOrder struct {
-	StoreID      string                        `json:"store_id"`
 	PaymentID    string                        `json:"payment_id"`
 	CustomerID   null.String                   `json:"customer_id"`
 	PaymentDate  time.Time                     `json:"payment_date"`
@@ -255,7 +254,6 @@ type ServiceIngestionOrderDetail struct {
 func (s ServiceIngestionOrder) Validate() error {
 	err := validation.ValidateStruct(&s,
 		validation.Field(&s.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
-		validation.Field(&s.StoreID, validation.Required, validation.NotNil),
 		validation.Field(&s.PaymentID, validation.Required, validation.NotNil),
 		validation.Field(&s.PaymentDate, validation.Required, validation.NotNil),
 		validation.Field(&s.OrderDetails, validation.Required, validation.NotNil, validation.Length(1, 0)),
@@ -278,7 +276,7 @@ func (s ServiceIngestionOrder) Validate() error {
 }
 
 func (s ServiceIngestionOrder) ToRepositoryPublishTransformOrderEvent() RepositoryPublishTransformOrderEvent {
-	id, err := ulid.New(uint64(s.PaymentDate.Unix()), rand.New(rand.NewSource(time.Now().Unix())))
+	id, err := ulid.New(uint64(s.PaymentDate.Unix()), rand.New(rand.NewSource(s.PaymentDate.UnixNano())))
 	if err != nil {
 		panic(err)
 	}
@@ -286,7 +284,6 @@ func (s ServiceIngestionOrder) ToRepositoryPublishTransformOrderEvent() Reposito
 	res := RepositoryPublishTransformOrderEvent{
 		ID:           id.String(),
 		CashierID:    s.CashierID,
-		StoreID:      s.StoreID,
 		PaymentID:    s.PaymentID,
 		CustomerID:   s.CustomerID,
 		CreatedAt:    s.PaymentDate,
@@ -325,13 +322,13 @@ func (s ServiceIngestionOrderDetail) ToRepositoryPublishTransformOrderDetailEven
 type ServiceTransformOrder struct {
 	ID           string                        `json:"id"`
 	CashierID    uuid.UUID                     `json:"cashier_id"`
-	StoreID      string                        `json:"store_id"`
 	PaymentID    string                        `json:"payment_id"`
 	CustomerID   null.String                   `json:"customer_id"`
 	CreatedAt    time.Time                     `json:"created_at"`
 	OrderDetails []ServiceTransformOrderDetail `json:"order_details"`
 
-	Currency string
+	StoreID  string `json:"-"`
+	Currency string `json:"-"`
 }
 
 type ServiceTransformOrderDetail struct {
@@ -344,7 +341,6 @@ type ServiceTransformOrderDetail struct {
 func (s ServiceTransformOrder) Validate() error {
 	err := validation.ValidateStruct(&s,
 		validation.Field(&s.CashierID, validation.Required, validation.NotNil, is.UUIDv4),
-		validation.Field(&s.StoreID, validation.Required, validation.NotNil),
 		validation.Field(&s.PaymentID, validation.Required, validation.NotNil),
 		validation.Field(&s.CreatedAt, validation.Required, validation.NotNil),
 		validation.Field(&s.OrderDetails, validation.Required, validation.NotNil, validation.Length(1, 0)),

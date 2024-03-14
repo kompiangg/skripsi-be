@@ -17,11 +17,17 @@ func (s service) TransformOrder(ctx context.Context, param []params.ServiceTrans
 
 	mapCurrency := make(map[string]model.Currency)
 	for idx, v := range param {
-		store, err := s.storeRepo.FindByID(ctx, v.StoreID)
+		cashier, err := s.cashierRepo.FindByID(ctx, v.CashierID)
 		if err != nil {
 			return errors.Wrap(err)
 		}
 
+		store, err := s.storeRepo.FindByID(ctx, cashier.StoreID)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		param[idx].StoreID = store.ID
 		param[idx].Currency = store.Currency
 
 		if _, ok := mapCurrency[store.Currency]; !ok {

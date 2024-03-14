@@ -64,7 +64,7 @@ func main() {
 			log.Fatal().Err(err).Msgf("failed to load data to general database, %s", err.(*errors.Error).ErrorStack())
 		}
 	} else if *seederFlag.ConnectionType == "else" {
-		err := order.LoadOrderData(cfg, connections, svc, repo, 3)
+		err := order.LoadOrderData(cfg, connections, svc, repo, 10)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("failed to load data to else database, %s", err.(*errors.Error).ErrorStack())
 		}

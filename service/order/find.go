@@ -53,7 +53,10 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 						StartDate: null.TimeFrom(shardParam.StartDate),
 						EndDate:   null.TimeFrom(shardParam.EndDate),
 					})
-					if err != nil {
+					if errors.Is(err, context.Canceled) {
+						errorChan <- nil
+						return
+					} else if err != nil {
 						errorChan <- err
 						return
 					}
@@ -63,7 +66,10 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 						StartDate:  null.TimeFrom(shardParam.StartDate),
 						EndDate:    null.TimeFrom(shardParam.EndDate),
 					})
-					if err != nil {
+					if errors.Is(err, context.Canceled) {
+						errorChan <- nil
+						return
+					} else if err != nil {
 						errorChan <- err
 						return
 					}
@@ -122,15 +128,20 @@ func (s service) FindOrder(ctx context.Context, param params.FindOrderService) (
 			}(idx, shardParam)
 		}
 
-		notErrCount := 0
-		for notErrCount != len(shardQuery) {
-			err := <-errorChan
-			if err != nil {
+		errCount := 0
+		var routineErr error
+
+		for errCount != len(shardQuery) {
+			routineErr = errors.Join(routineErr, <-errorChan)
+			if routineErr != nil {
 				cancel()
-				return nil, errors.Wrap(err)
 			}
 
-			notErrCount++
+			errCount++
+		}
+
+		if routineErr != nil {
+			return nil, errors.Wrap(routineErr)
 		}
 
 		for _, orders := range shardOrder {
@@ -212,14 +223,14 @@ func (s service) FindBriefInformationOrder(ctx context.Context, param params.Fin
 		return nil, errors.Wrap(errors.ErrDataParamStartDateMustNotAfterEndDate)
 	}
 
-	shardQuery, err := s.getShardWhereQuery(param.StartDate, param.EndDate)
-	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-
 	orders = make([]result.OrderBriefInformation, 0)
 
 	if s.config.IsUsingSharding {
+		shardQuery, err := s.getShardWhereQuery(param.StartDate, param.EndDate)
+		if err != nil {
+			return nil, errors.Wrap(err)
+		}
+
 		errorChan := make(chan error, len(shardQuery))
 		defer close(errorChan)
 
@@ -237,7 +248,10 @@ func (s service) FindBriefInformationOrder(ctx context.Context, param params.Fin
 						EndDate:   null.TimeFrom(shardParam.EndDate),
 						CashierID: param.CashierID,
 					})
-					if err != nil {
+					if errors.Is(err, context.Canceled) {
+						errorChan <- nil
+						return
+					} else if err != nil {
 						errorChan <- err
 						return
 					}
@@ -248,7 +262,10 @@ func (s service) FindBriefInformationOrder(ctx context.Context, param params.Fin
 						EndDate:    null.TimeFrom(shardParam.EndDate),
 						CashierID:  param.CashierID,
 					})
-					if err != nil {
+					if errors.Is(err, context.Canceled) {
+						errorChan <- nil
+						return
+					} else if err != nil {
 						errorChan <- err
 						return
 					}
@@ -283,15 +300,20 @@ func (s service) FindBriefInformationOrder(ctx context.Context, param params.Fin
 			}(idx, shardParam)
 		}
 
-		notErrCount := 0
-		for notErrCount != len(shardQuery) {
-			err := <-errorChan
-			if err != nil {
+		errCount := 0
+		var routineErr error
+
+		for errCount != len(shardQuery) {
+			routineErr = errors.Join(routineErr, <-errorChan)
+			if routineErr != nil {
 				cancel()
-				return nil, errors.Wrap(err)
 			}
 
-			notErrCount++
+			errCount++
+		}
+
+		if routineErr != nil {
+			return nil, errors.Wrap(routineErr)
 		}
 
 		for _, shardOrder := range shardOrders {
@@ -347,6 +369,7 @@ func (s service) FindOrderDetails(ctx context.Context, param params.FindOrderDet
 	createdAtUTC := time.Unix(int64(orderID.Time())/1000, 0).UTC()
 	shardIndex, err := s.getShardIndexByDateTime(createdAtUTC)
 	if errors.Is(err, constant.ErrOutOfShardRange) {
+		err = nil
 		isUsingSharding = false
 		shardIndex = -1
 	} else if err != nil {

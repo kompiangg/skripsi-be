@@ -269,7 +269,7 @@ func loadOrder(path string, stores []model.Store, storeCashier map[string][]mode
 				CustomerID:    null.StringFrom(customers[randCustomer].ID),
 				TotalQuantity: null.NewInt64(0, true),
 				TotalPrice:    decimal.NewFromInt(0),
-				Currency:      null.StringFrom("AFN"),
+				Currency:      null.StringFrom("BDT"),
 				UsdRate:       usdRate,
 				CreatedAt:     randTime,
 			})
