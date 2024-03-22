@@ -368,7 +368,7 @@ func (s ServiceTransformOrder) TransformOrder(usdRate decimal.Decimal) Repositor
 
 	for _, orderDetail := range s.OrderDetails {
 		totalQuantity += orderDetail.Quantity
-		totalPrice = totalPrice.Add(orderDetail.Price)
+		totalPrice = totalPrice.Add(orderDetail.Price.Mul(decimal.NewFromInt(orderDetail.Quantity)))
 	}
 
 	res := RepositoryPublishLoadOrderEvent{
