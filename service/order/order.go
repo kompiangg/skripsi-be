@@ -35,9 +35,10 @@ type Service interface {
 }
 
 type Config struct {
-	IsUsingSharding bool
-	Shards          config.Shards
-	Date            config.Date
+	IsUsingSharding   bool
+	Shards            config.Shards
+	Date              config.Date
+	KappaArchitecture config.KappaArchitecture
 }
 
 type service struct {

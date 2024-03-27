@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"skripsi-be/config"
 	"skripsi-be/repository/account"
 	"skripsi-be/repository/admin"
@@ -70,6 +71,9 @@ func New(
 		publisher.Config{
 			LoadOrderTopic:      config.Kafka.Topic.LoadOrder,
 			TransformOrderTopic: config.Kafka.Topic.TransformOrder,
+			TransformBaseURL:    fmt.Sprintf("http://%s:%d", "localhost", config.Microservice.TransformService.Port),
+			LongtermLoadBaseURl: fmt.Sprintf("http://%s:%d", "localhost", config.Microservice.LongtermLoadService.Port),
+			ShardingLoadBaseURL: fmt.Sprintf("http://%s:%d", "localhost", config.Microservice.ShardingLoadService.Port),
 		},
 		kafkaPublisher,
 	)

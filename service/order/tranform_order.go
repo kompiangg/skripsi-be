@@ -49,9 +49,21 @@ func (s service) TransformOrder(ctx context.Context, param []params.ServiceTrans
 		repoParam[i] = v.TransformOrder(mapCurrency[v.Currency].Rate)
 	}
 
-	err := s.publisherRepo.PublishLoadOrderEvent(ctx, repoParam)
-	if err != nil {
-		return errors.Wrap(err)
+	if s.config.KappaArchitecture.IsUsingKappaArchitecture {
+		err := s.publisherRepo.PublishLoadOrderEvent(ctx, repoParam)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	} else {
+		err := s.publisherRepo.PublishLongtermLoadOrderHTTPRequest(ctx, repoParam)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		err = s.publisherRepo.PublishShardingLoadOrderHTTPRequest(ctx, repoParam)
+		if err != nil {
+			return errors.Wrap(err)
+		}
 	}
 
 	return nil

@@ -107,6 +107,8 @@ func main() {
 		err = longtermloadservice.Init(
 			service,
 			config.Kafka,
+			config.Microservice.LongtermLoadService,
+			config,
 			mw,
 		)
 		if err != nil {
@@ -148,6 +150,8 @@ func main() {
 		err = shardingloadservice.Init(
 			service,
 			config.Kafka,
+			config.Microservice.ShardingLoadService,
+			config,
 			mw,
 		)
 		if err != nil {
@@ -156,7 +160,13 @@ func main() {
 		log.Info().Msg("Shutting down sharding load service...")
 	} else if *serviceName == "transformservice" {
 		log.Info().Msg("Starting transform service...")
-		err = transformservice.Init(service, config.Kafka)
+		err = transformservice.Init(
+			service,
+			config.Kafka,
+			config.Microservice.TransformService,
+			config,
+			mw,
+		)
 		if err != nil {
 			panic(err)
 		}

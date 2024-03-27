@@ -2,16 +2,18 @@ package handler
 
 import (
 	"fmt"
+	"skripsi-be/cmd/middleware"
 	"skripsi-be/cmd/shardingloadservice/handler/loadorder"
 	"skripsi-be/config"
 	"skripsi-be/pkg/errors"
 	"skripsi-be/service"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 )
 
-func Init(
+func EventHandlerInit(
 	kafkaConfig config.Kafka,
 	consumer *kafka.Consumer,
 	service service.Service,
@@ -41,4 +43,13 @@ func Init(
 			return errors.Wrap(err)
 		}
 	}
+}
+
+func HTTPHandlerInit(
+	echo *echo.Echo,
+	service service.Service,
+	middleware middleware.Middleware,
+	config config.Config,
+) {
+	loadorder.InitHTTPHandler(echo, middleware, config, service.Order)
 }

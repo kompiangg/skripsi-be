@@ -9,12 +9,18 @@ import (
 
 type Repository interface {
 	PublishLoadOrderEvent(ctx context.Context, param []params.RepositoryPublishLoadOrderEvent) error
+	PublishLongtermLoadOrderHTTPRequest(ctx context.Context, param []params.RepositoryPublishLoadOrderEvent) error
+	PublishShardingLoadOrderHTTPRequest(ctx context.Context, param []params.RepositoryPublishLoadOrderEvent) error
+	PublishTransformOrderHTTPRequest(ctx context.Context, param []params.RepositoryPublishTransformOrderEvent) error
 	PublishTransformOrderEvent(ctx context.Context, param []params.RepositoryPublishTransformOrderEvent) error
 }
 
 type Config struct {
 	LoadOrderTopic      string
 	TransformOrderTopic string
+	TransformBaseURL    string
+	LongtermLoadBaseURl string
+	ShardingLoadBaseURL string
 }
 
 type repository struct {

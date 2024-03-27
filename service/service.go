@@ -26,9 +26,10 @@ func New(
 ) (Service, error) {
 	order := order.New(
 		order.Config{
-			IsUsingSharding: config.ShardingDatabase.IsUsingSharding,
-			Shards:          config.ShardingDatabase.Shards,
-			Date:            config.Date,
+			IsUsingSharding:   config.ShardingDatabase.IsUsingSharding,
+			Shards:            config.ShardingDatabase.Shards,
+			KappaArchitecture: config.KappaArchitecture,
+			Date:              config.Date,
 		},
 		repository.Order,
 		repository.Publisher,

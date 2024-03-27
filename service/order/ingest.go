@@ -76,9 +76,16 @@ func (s service) IngestOrder(ctx context.Context, param []params.ServiceIngestio
 		res[i].FromParamServiceIngestionOrder(v, repoParam[i].ID)
 	}
 
-	err := s.publisherRepo.PublishTransformOrderEvent(ctx, repoParam)
-	if err != nil {
-		return nil, errors.Wrap(err)
+	if s.config.KappaArchitecture.IsUsingKappaArchitecture {
+		err := s.publisherRepo.PublishTransformOrderEvent(ctx, repoParam)
+		if err != nil {
+			return nil, errors.Wrap(err)
+		}
+	} else {
+		err := s.publisherRepo.PublishTransformOrderHTTPRequest(ctx, repoParam)
+		if err != nil {
+			return nil, errors.Wrap(err)
+		}
 	}
 
 	return res, nil

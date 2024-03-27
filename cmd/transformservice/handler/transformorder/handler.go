@@ -1,15 +1,40 @@
 package transformorder
 
-import "skripsi-be/service/order"
+import (
+	"skripsi-be/cmd/middleware"
+	"skripsi-be/config"
+	"skripsi-be/service/order"
 
-type handler struct {
+	"github.com/labstack/echo/v4"
+)
+
+type eventHandler struct {
 	orderService order.Service
 }
 
 func New(
 	orderService order.Service,
-) handler {
-	return handler{
+) eventHandler {
+	return eventHandler{
 		orderService: orderService,
 	}
+}
+
+type httpHandler struct {
+	orderService order.Service
+	config       config.Config
+}
+
+func InitHTTPHandler(
+	e *echo.Echo,
+	middleware middleware.Middleware,
+	config config.Config,
+	orderService order.Service,
+) {
+	h := httpHandler{
+		orderService: orderService,
+		config:       config,
+	}
+
+	e.POST("/v1/transform", h.TransformOrder)
 }
