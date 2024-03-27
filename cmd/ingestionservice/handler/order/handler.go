@@ -18,6 +18,6 @@ func Init(e *echo.Echo, service order.Service, middleware middleware.Middleware)
 		service: service,
 	}
 
-	e.POST("/v1/order/without-kappa", h.CreateNewOrderWithoutKappa, middleware.JWTRestricted())
+	e.POST("/v1/order/no-kappa", h.CreateNewOrderWithoutKappa, middleware.JWTRestricted())
 	e.POST("/v1/order", h.CreateNewOrder, middleware.JWTRestricted())
 }
