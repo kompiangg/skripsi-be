@@ -42,7 +42,3 @@ func (h handler) CreateNewOrder(c echo.Context) error {
 
 	return httpx.WriteResponse(c, http.StatusCreated, res)
 }
-
-func (h handler) CreateNewOrderWithoutKappa(c echo.Context) error {
-	return httpx.WriteErrorResponse(c, errors.ErrInternalServer, "Internal Server Error")
-}
