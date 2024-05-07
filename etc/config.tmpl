@@ -1,29 +1,85 @@
 Microservice:
-  OrderService:
+  GeneralService:
     Host: "0.0.0.0"
     Port: 8080
     WhiteListAllowOrigin:
       - "*"
+  AuthService:
+    Host: "0.0.0.0"
+    Port: 8081
+    WhiteListAllowOrigin:
+      - "*"
+  IngestionService:
+    Host: "0.0.0.0"
+    Port: 8082
+    WhiteListAllowOrigin:
+      - "*"
+  LongtermLoadService:
+    Host: "0.0.0.0"
+    Port: 8083
+    WhiteListAllowOrigin:
+      - "*"
+  ShardingLoadService:
+    Host: "0.0.0.0"
+    Port: 8084
+    WhiteListAllowOrigin:
+      - "*"
+  ServingService:
+    Host: "0.0.0.0"
+    Port: 8085
+    WhiteListAllowOrigin:
+      - "*"
+  TransformService:
+    Host: "0.0.0.0"
+    Port: 8086
+    WhiteListAllowOrigin:
+      - "*"
 
 GeneralDatabase:
-  URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-general?sslmode=disable"
+  URIConnection: ""
 
 LongTermDatabase:
-  URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-longterm?sslmode=disable"
+  URIConnection: ""
 
 ShardingDatabase:
+  IsUsingSharding: true
   Shards:
     - DataRetention: 1
-      URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-oneDay?sslmode=disable"
+      URIConnection: ""
     - DataRetention: 7
-      URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-sevenDay?sslmode=disable"
+      URIConnection: ""
     - DataRetention: 30
-      URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-thirtyDay?sslmode=disable"
+      URIConnection: ""
     - DataRetention: 90
-      URIConnection: "postgresql://postgres:123@localhost:5432/skripsi-ninetyDay?sslmode=disable"
+      URIConnection: ""
+
+KappaArchitecture:
+  IsUsingKappaArchitecture: true
 
 Redis:
-  Hostname: "localhost:6379"
-  Username: "local-user"
-  Password: "123"
-  DB: 0
+  Hostname: ""
+  Username: ""
+  Password: ""
+
+Kafka:
+  Server: ""
+  Topic:
+    TransformOrder: ""
+    LoadOrder: ""
+  Group:
+    Shard: ""
+    LongTerm: ""
+    Transform: ""
+
+Scheduler:
+  MoveShardingData:
+    Enable: true
+    Duration: "0 0 * * *"
+
+Date:
+  UsingCustomDate: true
+  Current: "2023-12-31T23:59:59Z"
+
+JWT:
+  Secret: ""
+  ExpInDay: 365
